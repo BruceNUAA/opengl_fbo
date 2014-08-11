@@ -1,7 +1,6 @@
 package com.example.gl_fbo;
 
 import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
@@ -9,8 +8,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
-import android.os.SystemClock;
 
 class Renderer implements GLSurfaceView.Renderer {
 	private boolean mContextSupportsFrameBufferObject;

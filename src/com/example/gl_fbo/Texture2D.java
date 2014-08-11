@@ -1,8 +1,6 @@
 package com.example.gl_fbo;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 

@@ -2,13 +2,10 @@ package com.example.gl_fbo;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.Bitmap;
-import android.opengl.GLUtils;
-import android.os.SystemClock;
 
 public class Texture2D2 {
 	private float maxU = 500.0f;
