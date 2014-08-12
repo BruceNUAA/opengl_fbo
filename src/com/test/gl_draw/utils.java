@@ -24,8 +24,8 @@ public class utils {
 		}
 	}
 
-	public static void checkGLError(GL gl) {
-		int error = ((GL10) gl).glGetError();
+	public static void checkGLError(GL10 gl) {
+		int error = gl.glGetError();
 		if (error != GL10.GL_NO_ERROR) {
 			throw new RuntimeException("GLError 0x"
 					+ Integer.toHexString(error));
@@ -51,7 +51,9 @@ public class utils {
 				GL10.GL_NEAREST);
 
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-	
+
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+
 		return textures[0];
 	}
 

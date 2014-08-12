@@ -14,10 +14,7 @@ public class Texture {
 	private RectF mTextRectF = new RectF();
 	private int[] mTexture = { 0 };
 
-	public Texture() {
-	}
-
-	public void Init(GL10 gl, Bitmap b) {
+	public boolean Init(GL10 gl, Bitmap b) {
 		utils.checkEGLContextOK();
 
 		int new_w = (int) cellPowerOf2(b.getWidth());
@@ -35,6 +32,8 @@ public class Texture {
 		mTexture[0] = utils.loadTexture(gl, resizedBitmap);
 
 		resizedBitmap.recycle();
+		
+		return mTexture[0] != 0;
 	}
 
 	public void Init(GL10 gl, int w, int h) {

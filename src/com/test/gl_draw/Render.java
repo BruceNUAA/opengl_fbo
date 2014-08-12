@@ -15,6 +15,7 @@ import android.os.Looper;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.test.TestSprite1;
+import com.test.gl_draw.test.TestSprite2;
 
 public class Render implements GLSurfaceView.Renderer {
 
@@ -110,29 +111,41 @@ public class Render implements GLSurfaceView.Renderer {
 
 	public void test() {
 		Context context = Render.sRender.mAPPContext;
-		{
+		if (false) {
 			Bitmap test_img = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.img);
-
-			Render.sRender.getMainScene().getSpriteManager()
-					.adddSprite(new TestSprite1(test_img));
-
-		}
-		{
-			Bitmap test_img = BitmapFactory.decodeResource(
+			Bitmap test_img2 = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.port_img);
 
 			Render.sRender.getMainScene().getSpriteManager()
-					.adddSprite(new TestSprite1(test_img));
+					.adddSprite(new TestSprite2(test_img, test_img2));
 
-		}
-		{
-			Bitmap test_img = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.ic_launcher);
+		} else {
+			if (true) {
+				Bitmap test_img = BitmapFactory.decodeResource(
+						context.getResources(), R.drawable.img);
 
-			Render.sRender.getMainScene().getSpriteManager()
-					.adddSprite(new TestSprite1(test_img));
+				Render.sRender.getMainScene().getSpriteManager()
+						.adddSprite(new TestSprite1(test_img));
 
+			}
+
+			if (true) {
+				Bitmap test_img = BitmapFactory.decodeResource(
+						context.getResources(), R.drawable.port_img);
+
+				Render.sRender.getMainScene().getSpriteManager()
+						.adddSprite(new TestSprite1(test_img));
+
+			}
+			if (true) {
+				Bitmap test_img = BitmapFactory.decodeResource(
+						context.getResources(), R.drawable.ic_launcher);
+
+				Render.sRender.getMainScene().getSpriteManager()
+						.adddSprite(new TestSprite1(test_img));
+
+			}
 		}
 	}
 

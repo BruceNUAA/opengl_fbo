@@ -7,7 +7,5 @@ public interface ISprite {
 	void onSurfaceCreated(GL10 gl);
 	void onSurfaceChanged(GL10 gl, int w, int h);
 	
-	void onPreDrawFrame(GL10 gl);
 	void onDrawFrame(GL10 gl); 
-	void onPostDrawFrame(GL10 gl);
 }

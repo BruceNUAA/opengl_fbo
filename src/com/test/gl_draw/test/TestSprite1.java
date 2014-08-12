@@ -22,6 +22,8 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	private FloatBuffer mVBuffererticleBuffer;
 	private FloatBuffer mTextureBufferBuffer;
+	private FloatBuffer mColorBuffer;
+
 	private float mBitmapW;
 	private float mBitmapH;
 
@@ -30,9 +32,6 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	private GLTimer mTimer;
 
-	public static int sActive = 0;
-
-	private int mTextActiveID = 0;
 	//
 	private int mFrameCount = 0;
 	private int mTestDuration = 2000;
@@ -43,15 +42,14 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 		mBitmapW = bitmap.getWidth();
 		mBitmapH = bitmap.getHeight();
 
-		mTextActiveID = sActive;
-		//sActive++;
 		StartTimer();
 	}
 
-	private void init(GL10 gl) {
-		//gl.glActiveTexture(GL10.GL_TEXTURE0 + mTextActiveID);
+	private boolean init(GL10 gl) {
 		utils.checkGLError(gl);
-		mTexture.Init(gl, mBitmap);
+
+		if (!mTexture.Init(gl, mBitmap))
+			return false;
 
 		float x = -mBitmapW / 2.0f;
 		float y = -mBitmapH / 2.0f;
@@ -67,6 +65,21 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 		mVBuffererticleBuffer.put(f1);
 		mVBuffererticleBuffer.position(0);
 
+		float t = 0.8f;
+
+		float[] color = {
+				//
+				t, t, t, t,//
+				t, t, t, t,//
+				t, t, t, t,//
+				t, 0, 0, t,//
+		};
+
+		mColorBuffer = BufferUtil.newFloatBuffer(color.length);
+		mColorBuffer.put(color);
+
+		mColorBuffer.position(0);
+
 		RectF t_r = mTexture.getTextRect();
 
 		float[] f2 = {
@@ -78,6 +91,8 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 		mTextureBufferBuffer = BufferUtil.newFloatBuffer(f2.length);
 		mTextureBufferBuffer.put(f2);
 		mTextureBufferBuffer.position(0);
+
+		return true;
 	}
 
 	@Override
@@ -89,60 +104,37 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 	}
 
 	@Override
-	public void onPreDrawFrame(GL10 gl) {
-		// if (!mCanBeDraw)
-		// return;
-
-		if (mTexture.getTexture() == 0) {
-			init(gl);
-		}
-		utils.checkGLError(gl);
-		gl.glPushMatrix();
-
-		gl.glEnable(GL10.GL_TEXTURE_2D);
-		gl.glEnable(GL10.GL_BLEND);
-
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-
-		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-
-		gl.glActiveTexture(GL10.GL_TEXTURE0 + mTextActiveID);
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
-		
-	}
-
-	@Override
 	public void onDrawFrame(GL10 gl) {
 		// if (!mCanBeDraw)
 		// return;
+		if (mTexture.getTexture() == 0 && !init(gl))
+			return;
 
 		utils.checkGLError(gl);
+		gl.glPushMatrix();
+
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
 
 		mV += mStep;
 		if (mV > 1 || mV < 0) {
 			mStep *= -1;
 			mV += mStep;
 		}
-		gl.glActiveTexture(GL10.GL_TEXTURE0 + mTextActiveID);
+
 		gl.glRotatef(mV * 360f, 0.0f, 0.0f, -1.0f);
+		
+		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBufferBuffer);
+		gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
 
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-	}
+		
+		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
 
-	@Override
-	public void onPostDrawFrame(GL10 gl) {
-		// if (!mCanBeDraw)
-		// return;
-
-		gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
-		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glDisable(GL10.GL_TEXTURE_2D);
-		gl.glDisable(GL10.GL_BLEND);
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
 		gl.glPopMatrix();
+		utils.checkGLError(gl);
 	}
 
 	@Override
