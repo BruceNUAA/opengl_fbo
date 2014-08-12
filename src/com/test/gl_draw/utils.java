@@ -1,10 +1,28 @@
-package com.example.gl_fbo;
+package com.test.gl_draw;
 
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLES20;
+import android.opengl.GLUtils;
+
 public class utils {
+
+	public static boolean isEGLContextOK() {
+		return !((EGL10) EGLContext.getEGL()).eglGetCurrentContext().equals(
+				EGL10.EGL_NO_CONTEXT);
+	}
+
+	public static void checkEGLContextOK() {
+		if (!isEGLContextOK()) {
+			throw new RuntimeException("Opengl context is not created !");
+		}
+	}
 
 	public static void checkGLError(GL gl) {
 		int error = ((GL10) gl).glGetError();
@@ -14,12 +32,38 @@ public class utils {
 		}
 	}
 
+	public static int loadTexture(GL10 gl, Bitmap bitmap) {
+		final int[] textures = new int[1];
+		GLES20.glGenTextures(1, textures, 0);
+
+		if (textures[0] == 0) {
+			throw new RuntimeException("failed to load texture");
+		}
+
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inScaled = false;
+
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
+
+		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+				GL10.GL_NEAREST);
+		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
+				GL10.GL_NEAREST);
+
+		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+	
+		return textures[0];
+	}
+
 	public static int createTargetTexture(GL10 gl, int width, int height) {
-		int texture;
 		int[] textures = new int[1];
 		gl.glGenTextures(1, textures, 0);
-		texture = textures[0];
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+
+		if (textures[0] == 0) {
+			throw new RuntimeException("failed to load texture");
+		}
+
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 		gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height, 0,
 				GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
@@ -30,8 +74,7 @@ public class utils {
 				GL10.GL_REPEAT);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
 				GL10.GL_REPEAT);
-		;
-		return texture;
+		return textures[0];
 	}
 
 	public static void deleteTargetTexture(GL10 gl) {

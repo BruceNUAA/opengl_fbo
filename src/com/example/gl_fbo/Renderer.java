@@ -9,12 +9,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLSurfaceView;
 
+import com.test.gl_draw.utils;
+
 class Renderer implements GLSurfaceView.Renderer {
 	private boolean mContextSupportsFrameBufferObject;
 	private int mTargetTexture;
 	private int mFramebuffer;
-	private int mFramebufferWidth = 700;
-	private int mFramebufferHeight = 900;
+	private int mFramebufferWidth = 512;
+	private int mFramebufferHeight = 512;
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
 
@@ -71,6 +73,8 @@ class Renderer implements GLSurfaceView.Renderer {
 	}
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		utils.checkEGLContextOK();
+		
 		mContextSupportsFrameBufferObject = utils
 				.checkIfContextSupportsFrameBufferObject(gl);
 		if (mContextSupportsFrameBufferObject) {

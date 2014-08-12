@@ -5,27 +5,9 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.graphics.Bitmap;
-
 public class Texture2D2 {
 	private float maxU = 500.0f;
 	private float maxV = 500.0f;
-
-	private Bitmap mBitmap = null;
-	private int textureId = 0;
-
-	public void delete(GL10 gl) {
-		if (textureId != 0) {
-			gl.glDeleteTextures(1, new int[] { textureId }, 0);
-			textureId = 0;
-		}
-
-		if (mBitmap != null) {
-			if (mBitmap.isRecycled())
-				mBitmap.recycle();
-			mBitmap = null;
-		}
-	}
 
 	FloatBuffer verticleBuffer;
 	ByteBuffer colorBuffer;
@@ -44,7 +26,7 @@ public class Texture2D2 {
 		mV += mStep;
 		if (mV > 1 || mV < 0) {
 			mStep *= -1;
-		    mV += mStep;
+			mV += mStep;
 		}
 
 		{
@@ -58,17 +40,17 @@ public class Texture2D2 {
 			verticleBuffer.put(f1);
 			verticleBuffer.position(0);
 
-			byte t = (byte) (mV  * 255);
+			byte t = (byte) (mV * 255);
 			byte[] color = { (byte) t, (byte) t, (byte) t, (byte) t, // 1,
-																			// 1,
-																			// 1,
-																			// mF,//
-																			// x
-																			// +
-																			// 1,
-																			// y
-																			// +
-																			// 1,
+																		// 1,
+																		// 1,
+																		// mF,//
+																		// x
+																		// +
+																		// 1,
+																		// y
+																		// +
+																		// 1,
 					(byte) 0, (byte) 0, (byte) t, t, // 1, 1, 1, mF,// x + 1,
 														// y,
 					(byte) 0, (byte) t, (byte) 0, t, // 1, 1, 1, mF,// x, y +
