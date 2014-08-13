@@ -16,32 +16,32 @@ import android.os.Looper;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.test.TestSprite1;
-import com.test.gl_draw.test.TestSprite2D;
+import com.test.gl_draw.test.TestFrameBuffer2D;
 
 public class Render implements GLSurfaceView.Renderer {
 
 	// static block {
 	private static Render sRender = null;
 
-	public static void RegistTimer(GLTimer timer) {
+	public static void RegistFrameCallback(IRenderFrame iframe) {
 		if (sRender == null)
 			return;
-		if (sRender.mTimer.contains(timer)) {
+		if (sRender.mRenderFameCallBack.contains(iframe)) {
 			return;
 		}
 
-		sRender.mTimer.add(timer);
+		sRender.mRenderFameCallBack.add(iframe);
 	}
 
-	public static void UnRegistTimer(GLTimer timer) {
+	public static void UnRegistFrameCallback(IRenderFrame iframe) {
 		if (sRender == null)
 			return;
 
-		if (!sRender.mTimer.contains(timer)) {
+		if (!sRender.mRenderFameCallBack.contains(iframe)) {
 			return;
 		}
 
-		sRender.mTimer.remove(timer);
+		sRender.mRenderFameCallBack.remove(iframe);
 	}
 
 	public static void RequestRender(final boolean once) {
@@ -65,7 +65,7 @@ public class Render implements GLSurfaceView.Renderer {
 	private Handler mMainUIHandler;
 	private IRenderMsg mIRenderMsg;
 
-	private CopyOnWriteArrayList<ITimer> mTimer;
+	private CopyOnWriteArrayList<IRenderFrame> mRenderFameCallBack;
 
 	private Context mAPPContext = null;
 
@@ -82,7 +82,7 @@ public class Render implements GLSurfaceView.Renderer {
 
 		mMainUIHandler = new Handler(Looper.getMainLooper());
 		mIRenderMsg = iRenderMsg;
-		mTimer = new CopyOnWriteArrayList<Render.ITimer>();
+		mRenderFameCallBack = new CopyOnWriteArrayList<Render.IRenderFrame>();
 	}
 
 	public MainScene2D getMainScene() {
@@ -121,13 +121,13 @@ public class Render implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		for (ITimer iTimer : mTimer)
-			iTimer.OnTick();
+		for (IRenderFrame iframe : mRenderFameCallBack)
+			iframe.OnFrame(gl);
 		mMainScene.onDrawFrame(gl);
 	}
 
 	public void destory() {
-		mTimer.clear();
+		mRenderFameCallBack.clear();
 		Render.sRender = null;
 	}
 
@@ -141,9 +141,9 @@ public class Render implements GLSurfaceView.Renderer {
 
 			RectF render_rect = new RectF(0, 0, mRenderW, mRenderH);
 
-			TestSprite2D testSprite2D = new TestSprite2D(render_rect, test_img,
+			TestFrameBuffer2D testSprite2D = new TestFrameBuffer2D(render_rect, test_img,
 					test_img2);
-			
+
 			for (ISprite i : testSprite2D.getSprite()) {
 				Render.sRender.getMainScene().getSpriteManager().adddSprite(i);
 			}
@@ -178,8 +178,8 @@ public class Render implements GLSurfaceView.Renderer {
 	}
 
 	// /
-	public interface ITimer {
-		public void OnTick();
+	public interface IRenderFrame {
+		public void OnFrame(GL10 gl);
 	}
 
 	public interface IRenderMsg {

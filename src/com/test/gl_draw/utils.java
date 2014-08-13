@@ -2,7 +2,6 @@ package com.test.gl_draw;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.opengles.GL;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
@@ -12,6 +11,17 @@ import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
 public class utils {
+
+	public static long cellPowerOf2(long n) {
+		n--;
+		n |= n >> 1;
+		n |= n >> 2;
+		n |= n >> 4;
+		n |= n >> 8;
+		n |= n >> 16;
+		n++;
+		return n;
+	}
 
 	public static boolean isEGLContextOK() {
 		return !((EGL10) EGLContext.getEGL()).eglGetCurrentContext().equals(
@@ -44,18 +54,18 @@ public class utils {
 		options.inScaled = false;
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
-		
+
 		// inside antialias
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
 				GL10.GL_LINEAR);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
 				GL10.GL_LINEAR);
-		
+
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
 				GL10.GL_REPEAT);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
 				GL10.GL_REPEAT);
-		
+
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
@@ -74,12 +84,12 @@ public class utils {
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 		gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height, 0,
 				GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
-		
+
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
 				GL10.GL_LINEAR);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
 				GL10.GL_LINEAR);
-		
+
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
 				GL10.GL_REPEAT);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
@@ -87,8 +97,8 @@ public class utils {
 		return textures[0];
 	}
 
-	public static void deleteTargetTexture(GL10 gl) {
-
+	public static void deleteTargetTexture(GL10 gl, int[] texture) {
+		gl.glDeleteTextures(texture.length, texture, 0);
 	}
 
 	public static int createFrameBuffer(GL10 gl, int width, int height,
@@ -124,8 +134,14 @@ public class utils {
 			throw new RuntimeException("Framebuffer is not complete: "
 					+ Integer.toHexString(status));
 		}
+
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 		return framebuffer;
+	}
+
+	public static void deleteFrameBuffers(GL10 gl, int[] fbo) {
+		GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
+		gl11ep.glDeleteFramebuffersOES(fbo.length, fbo, 0);
 	}
 
 	public static boolean checkIfContextSupportsFrameBufferObject(GL10 gl) {

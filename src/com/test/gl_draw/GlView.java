@@ -27,6 +27,12 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg {
 	}
 
 	@Override
+	protected void onDetachedFromWindow() {
+		mRender.destory();
+		super.onDetachedFromWindow();
+	}
+
+	@Override
 	public void onSurfaceCreated() {
 		Assert.assertTrue(Looper.getMainLooper().getThread() == Thread
 				.currentThread());

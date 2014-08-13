@@ -17,29 +17,37 @@ public class Texture {
 	private int mTextureOriginH = 0;
 
 	// 仅用来判断纹理是否被重复加载
-	private Bitmap mTureBitmap = null;
+	private Bitmap mTextureBitmap = null;
 
 	@Override
 	public int hashCode() {
 		return super.hashCode();
 	}
 
+	public void Init(Texture texture) {
+		mTextRectF.set(texture.mTextRectF);
+		mTexture[0] = texture.mTexture[0];
+		mTextureOriginW = texture.mTextureOriginW;
+		mTextureOriginH = texture.mTextureOriginH;
+		mTextureBitmap = texture.mTextureBitmap;
+	}
+
 	public boolean Init(GL10 gl, Bitmap b) {
 		if (b == null) {
 			return false;
-		} else if (b.sameAs(mTureBitmap)) {
+		} else if (b.sameAs(mTextureBitmap)) {
 			return true;
 		}
 
 		UnLoad(gl);
 
-		mTureBitmap = b;
+		mTextureBitmap = b;
 
 		mTextureOriginW = b.getWidth();
 		mTextureOriginH = b.getHeight();
 
-		int new_w = (int) cellPowerOf2(mTextureOriginW);
-		int new_h = (int) cellPowerOf2(mTextureOriginH);
+		int new_w = (int) utils.cellPowerOf2(mTextureOriginW);
+		int new_h = (int) utils.cellPowerOf2(mTextureOriginH);
 
 		float map_w = b.getWidth() / (float) new_w;
 		float map_h = b.getHeight() / (float) new_h;
@@ -57,14 +65,14 @@ public class Texture {
 		return mTexture[0] != 0;
 	}
 
-	public void Init(GL10 gl, int w, int h) {
+	public boolean Init(GL10 gl, int w, int h) {
 		UnLoad(gl);
 
 		mTextureOriginW = w;
 		mTextureOriginH = h;
 
-		int new_w = (int) cellPowerOf2(mTextureOriginW);
-		int new_h = (int) cellPowerOf2(mTextureOriginH);
+		int new_w = (int) utils.cellPowerOf2(mTextureOriginW);
+		int new_h = (int) utils.cellPowerOf2(mTextureOriginH);
 
 		float map_w = w / (float) new_w;
 		float map_h = h / (float) new_h;
@@ -74,15 +82,16 @@ public class Texture {
 		mTextRectF.set(map_x, map_y, map_x + map_w, map_y + map_h);
 
 		mTexture[0] = utils.createTargetTexture(gl, new_w, new_h);
+		return mTexture[0] != 0;
 	}
 
 	public void UnLoad(GL10 gl) {
-		mTureBitmap = null;
+		mTextureBitmap = null;
 
 		utils.checkEGLContextOK();
 
 		if (mTexture[0] != 0) {
-			gl.glDeleteTextures(1, mTexture, 0);
+			utils.deleteTargetTexture(gl, mTexture);
 			mTexture[0] = 0;
 		}
 	}
@@ -100,17 +109,6 @@ public class Texture {
 	}
 
 	//
-	private long cellPowerOf2(long n) {
-		n--;
-		n |= n >> 1;
-		n |= n >> 2;
-		n |= n >> 4;
-		n |= n >> 8;
-		n |= n >> 16;
-		n++;
-		return n;
-	}
-
 	private Bitmap resizeBitmap(Bitmap b, int new_w, int new_h) {
 		Bitmap resized_b = null;
 

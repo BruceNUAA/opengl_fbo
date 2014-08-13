@@ -64,8 +64,11 @@ class Renderer implements GLSurfaceView.Renderer {
 					drawOffscreenImage(gl, mFramebufferWidth,
 							mFramebufferHeight);		
 				}
+				
 				gl11ep.glBindFramebufferOES(
 						GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
+				utils.deleteFrameBuffers(gl, new int[] {mFramebuffer});
+				utils.checkGLError(gl);
 				drawOnscreen(gl, mSurfaceWidth, mSurfaceHeight);
 			}
 		} else {
@@ -125,11 +128,11 @@ class Renderer implements GLSurfaceView.Renderer {
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		gl.glLoadIdentity();
 		mTxImage.draw(gl, -width / 2.0f, -height / 2.0f);
-		mTxImage2.draw(gl, -100.f, -100);
+		//mTxImage2.draw(gl, -100.f, -100);
 		{
 			
 			mTxImage.draw(gl, -width / 2.0f, -height / 2.0f);
-			mTxImage2.draw(gl, -100.f, -100);
+		//	mTxImage2.draw(gl, -100.f, -100);
 		}
 	}
 }

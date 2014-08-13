@@ -4,15 +4,21 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
+import com.test.gl_draw.FrameBuffer2D;
 import com.test.gl_draw.GLTimer;
 import com.test.gl_draw.ISprite;
 import com.test.gl_draw.Render;
 import com.test.gl_draw.Sprite2D;
 import com.test.gl_draw.SpriteDataProvider;
 
-public class TestSprite2D implements GLTimer.OnAnimatListener {
+public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 
 	private GLTimer mTimer;
+
+	private FrameBuffer2D mFrameBuffer = new FrameBuffer2D();
+	private Sprite2D mSpriteFBO = new Sprite2D();
+
+	private SpriteDataProvider mSpriteDataProviderFBO = new SpriteDataProvider();
 
 	private Sprite2D mSprite2d = new Sprite2D();
 	private Sprite2D mSprite2d2 = new Sprite2D();
@@ -25,8 +31,11 @@ public class TestSprite2D implements GLTimer.OnAnimatListener {
 	private int mFrameCount = 0;
 	private int mTestDuration = 2000;
 
-	public TestSprite2D(RectF render_rect, Bitmap bitmap, Bitmap bitmap2) {
+	public boolean mTestFrameBuffer = true;
+
+	public TestFrameBuffer2D(RectF render_rect, Bitmap bitmap, Bitmap bitmap2) {
 		mRenderRectF.set(render_rect);
+
 		{
 			mSpriteDataProvider.setOrigin(0, 0);
 			mSpriteDataProvider.setBitmap(bitmap);
@@ -43,18 +52,42 @@ public class TestSprite2D implements GLTimer.OnAnimatListener {
 			mSpriteDataProvider2.setBitmap(bitmap2);
 			mSpriteDataProvider2.setAlpha(1);
 
-			mSpriteDataProvider2.setRotateOrigin(0, 800);
+			if (!mTestFrameBuffer) {
+				mSpriteDataProviderFBO.setRotateOrigin(0, 800);
+			}
 
 			mSpriteDataProvider2.setRect(-bitmap2.getWidth() / 2,
 					-bitmap2.getHeight() / 2, bitmap2.getWidth(),
 					bitmap2.getHeight());
 			mSprite2d2.setDataProvider(mSpriteDataProvider2);
 		}
+		
+		if (mTestFrameBuffer) {
+		//	mSpriteDataProvider.setRotateDegree(180);
+			//mSpriteDataProvider2.setRotateDegree(180);
+
+			// mSpriteDataProvider2.setOrigin(0, 100);
+			mSpriteDataProviderFBO.setBitmap(bitmap2);
+			mSpriteDataProviderFBO.setAlpha(1);
+
+			mSpriteDataProviderFBO.setRotateOrigin(0, 800);
+
+			mSpriteDataProviderFBO.setRect(-bitmap2.getWidth() / 2,
+					-bitmap2.getHeight() / 2, bitmap2.getWidth(),
+					bitmap2.getHeight());
+			mSpriteFBO.setDataProvider(mSpriteDataProviderFBO);
+
+			mFrameBuffer.setSurfaceWidth((int) mRenderRectF.width(),
+					(int) mRenderRectF.height());
+			mFrameBuffer.setRenderSprite2D(mSpriteFBO, mSprite2d, mSprite2d2);
+		}
+
 		StartTimer();
 	}
 
 	public ISprite[] getSprite() {
-		return new ISprite[] { mSprite2d, mSprite2d2 };
+		return mTestFrameBuffer ? new ISprite[] { mSpriteFBO } : new ISprite[] {
+				mSprite2d, mSprite2d2 };
 	}
 
 	@Override
@@ -67,23 +100,37 @@ public class TestSprite2D implements GLTimer.OnAnimatListener {
 	@Override
 	public void OnAnimationUpdate(float last_v, float new_v) {
 		mFrameCount++;
-		{
-			mSpriteDataProvider
-					.setRotateDegree(mTimer.getAnimationValue() * 180);
-			mSpriteDataProvider.setAlpha(mTimer.getAnimationValue());
-		}
-		{
 
-			float[] rect = mSpriteDataProvider2.getRenderRect();
+		if (mTestFrameBuffer) {
+			float[] rect = mSpriteDataProviderFBO.getRenderRect();
 			float x = mTimer.getAnimationValue() * mRenderRectF.width()
 					- (rect[2] - rect[0]) / 2;
 
 			float y = (rect[3] - rect[1]) / 2;
 			// mSpriteDataProvider2.setOrigin(x, y);
-			mSpriteDataProvider2
+			mSpriteDataProviderFBO
 					.setRotateDegree(mTimer.getAnimationValue() * 10);
-			// mSpriteDataProvider2
-			// .setAlpha(mTimer.getAnimationValue() * 0.5f + 0.5f);
+			mSpriteDataProviderFBO.setAlpha((1 - Math.abs(mTimer
+					.getAnimationValue())) * 0.5f + 0.5f);
+		} else {
+			{
+				mSpriteDataProvider
+						.setRotateDegree(mTimer.getAnimationValue() * 180);
+				mSpriteDataProvider.setAlpha(mTimer.getAnimationValue());
+			}
+			{
+
+				float[] rect = mSpriteDataProvider2.getRenderRect();
+				float x = mTimer.getAnimationValue() * mRenderRectF.width()
+						- (rect[2] - rect[0]) / 2;
+
+				float y = (rect[3] - rect[1]) / 2;
+				// mSpriteDataProvider2.setOrigin(x, y);
+				mSpriteDataProvider2
+						.setRotateDegree(mTimer.getAnimationValue() * 10);
+				mSpriteDataProvider2.setAlpha((1 - Math.abs(mTimer
+						.getAnimationValue())) * 0.5f + 0.5f);
+			}
 		}
 
 		Render.RequestRender(true);

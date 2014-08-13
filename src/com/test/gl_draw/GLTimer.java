@@ -1,9 +1,11 @@
 package com.test.gl_draw;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import junit.framework.Assert;
 import android.os.SystemClock;
 
-public class GLTimer implements Render.ITimer {
+public class GLTimer implements Render.IRenderFrame {
 	public interface OnAnimatListener {
 		void OnAnimationStart();
 
@@ -42,7 +44,7 @@ public class GLTimer implements Render.ITimer {
 
 	public void setAnimationArgs(float[] args) {
 		Assert.assertTrue(args.length >= 3);
-		
+
 		mStart = args[0];
 		mEnd = args[1];
 		mDuration = (long) args[2];
@@ -70,7 +72,7 @@ public class GLTimer implements Render.ITimer {
 		if (mListener == null)
 			return;
 
-		Render.RegistTimer(this);
+		Render.RegistFrameCallback(this);
 	}
 
 	public void stop() {
@@ -80,11 +82,11 @@ public class GLTimer implements Render.ITimer {
 		mIsRunning = false;
 		mListener.OnAnimationEnd();
 
-		Render.UnRegistTimer(this);
+		Render.UnRegistFrameCallback(this);
 	}
 
 	@Override
-	public void OnTick() {
+	public void OnFrame(GL10 gl) {
 		if (!mIsRunning || mListener == null)
 			return;
 

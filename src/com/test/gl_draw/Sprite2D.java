@@ -24,6 +24,14 @@ public class Sprite2D implements ISprite {
 		mTextureBufferBuffer = BufferUtil.newFloatBuffer(4 * 2);
 	}
 
+	public void ChangeTexture(GL10 gl, Texture texture) {
+		if (texture == null)
+			return;
+
+		mTexture.UnLoad(gl);
+		mTexture.Init(texture);
+	}
+
 	@Override
 	public void setDataProvider(IDataProvider provider) {
 		mDataProvider = provider;
@@ -84,7 +92,8 @@ public class Sprite2D implements ISprite {
 		if (rect.length < 4 || origin.length < 2 || rotate_origin.length < 2)
 			return false;
 
-		if (!mTexture.Init(gl, mDataProvider.getRenderBitmap()))
+		if (mTexture.getTexture() == 0
+				&& !mTexture.Init(gl, mDataProvider.getRenderBitmap()))
 			return false;
 
 		float[] pos = {
