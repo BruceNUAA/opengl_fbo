@@ -1,5 +1,6 @@
 package com.test.gl_draw;
 
+import junit.framework.Assert;
 import android.os.SystemClock;
 
 public class GLTimer implements Render.ITimer {
@@ -16,7 +17,7 @@ public class GLTimer implements Render.ITimer {
 	private long mDuration;
 	private OnAnimatListener mListener;
 
-	private boolean isRunning = false;
+	private boolean mIsRunning = false;
 	private long mStartedTime;
 	private long mCurrentTime;
 
@@ -31,15 +32,39 @@ public class GLTimer implements Render.ITimer {
 		return timer;
 	}
 
+	public boolean isRunning() {
+		return mIsRunning;
+	}
+
+	public float[] getAnimationArgs() {
+		return new float[] { mStart, mEnd, mDuration };
+	}
+
+	public void setAnimationArgs(float[] args) {
+		Assert.assertTrue(args.length >= 3);
+		
+		mStart = args[0];
+		mEnd = args[1];
+		mDuration = (long) args[2];
+		mIsRunning = false;
+	}
+
 	public float getAnimationPos() {
-		if (isRunning == false)
+		if (mIsRunning == false)
 			return 0;
 
 		return (mCurrentTime - mStartedTime) / (float) mDuration;
 	}
 
+	public float getAnimationValue() {
+		if (mIsRunning == false)
+			return 0;
+
+		return (mStart - mEnd) * getAnimationPos() + mEnd;
+	}
+
 	public void start() {
-		isRunning = true;
+		mIsRunning = true;
 		mStartedTime = SystemClock.uptimeMillis();
 		mCurrentTime = mStartedTime;
 		if (mListener == null)
@@ -52,7 +77,7 @@ public class GLTimer implements Render.ITimer {
 		if (mListener == null)
 			return;
 
-		isRunning = false;
+		mIsRunning = false;
 		mListener.OnAnimationEnd();
 
 		Render.UnRegistTimer(this);
@@ -60,7 +85,7 @@ public class GLTimer implements Render.ITimer {
 
 	@Override
 	public void OnTick() {
-		if (!isRunning || mListener == null)
+		if (!mIsRunning || mListener == null)
 			return;
 
 		long current = SystemClock.uptimeMillis();

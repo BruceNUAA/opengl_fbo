@@ -44,12 +44,18 @@ public class utils {
 		options.inScaled = false;
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
-
+		
+		// inside antialias
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
-				GL10.GL_NEAREST);
+				GL10.GL_LINEAR);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER,
-				GL10.GL_NEAREST);
-
+				GL10.GL_LINEAR);
+		
+		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+				GL10.GL_REPEAT);
+		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+				GL10.GL_REPEAT);
+		
 		GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
@@ -68,10 +74,12 @@ public class utils {
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 		gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width, height, 0,
 				GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
+		
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
-				GL10.GL_NEAREST);
+				GL10.GL_LINEAR);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
 				GL10.GL_LINEAR);
+		
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
 				GL10.GL_REPEAT);
 		gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,

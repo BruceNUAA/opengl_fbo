@@ -26,13 +26,14 @@ public class MainScene2D {
 		gl.glOrthof(-w / 2.0f, w / 2.0f, h / 2.0f, -h / 2.0f, -1, 1);
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 
-		
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		
+
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+
+		gl.glEnable(GL10.GL_MULTISAMPLE);
 
 		for (ISprite iSprite : mSpriteManger) {
 			iSprite.onSurfaceChanged(gl, w, h);

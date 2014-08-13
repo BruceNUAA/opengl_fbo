@@ -26,6 +26,8 @@ public class Render implements GLSurfaceView.Renderer {
 	private static Render sRender = null;
 
 	public static void RegistTimer(GLTimer timer) {
+		if (sRender == null)
+			return;
 		if (sRender.mTimer.contains(timer)) {
 			return;
 		}
@@ -34,11 +36,27 @@ public class Render implements GLSurfaceView.Renderer {
 	}
 
 	public static void UnRegistTimer(GLTimer timer) {
+		if (sRender == null)
+			return;
+
 		if (!sRender.mTimer.contains(timer)) {
 			return;
 		}
 
 		sRender.mTimer.remove(timer);
+	}
+
+	public static void RequestRender(final boolean once) {
+		if (sRender == null)
+			return;
+
+		sRender.mMainUIHandler.post(new Runnable() {
+
+			@Override
+			public void run() {
+				sRender.mIRenderMsg.requestRender(once);
+			}
+		});
 	}
 
 	// }
@@ -155,8 +173,11 @@ public class Render implements GLSurfaceView.Renderer {
 	}
 
 	public interface IRenderMsg {
+
 		void onSurfaceCreated();
 
 		void onSurfaceChanged(int w, int h);
+
+		void requestRender(boolean once);
 	}
 }

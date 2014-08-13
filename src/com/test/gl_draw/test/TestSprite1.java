@@ -11,6 +11,7 @@ import android.util.Log;
 import com.example.gl_fbo.BufferUtil;
 import com.test.gl_draw.GLTimer;
 import com.test.gl_draw.ISprite;
+import com.test.gl_draw.Render;
 import com.test.gl_draw.Texture;
 import com.test.gl_draw.utils;
 
@@ -27,15 +28,17 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 	private float mBitmapW;
 	private float mBitmapH;
 
-	private float mStep = 0.005f;
+	private float mStep = 0.008f;
 	private float mV = 0;
 
 	private GLTimer mTimer;
 
 	//
 	private int mFrameCount = 0;
-	private int mTestDuration = 2000;
+	private int mTestDuration = 4000;
 	private boolean mCanBeDraw = false;
+	private boolean mTestFrame = false;
+	private int mTestMaxDegree = 10;
 
 	public TestSprite1(Bitmap bitmap) {
 		mBitmap = bitmap;
@@ -105,31 +108,41 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		// if (!mCanBeDraw)
-		// return;
-		if (mTexture.getTexture() == 0 && !init(gl))
-			return;
 
-		utils.checkGLError(gl);
-		gl.glPushMatrix();
-
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
-
+		// test {
 		mV += mStep;
 		if (mV > 1 || mV < 0) {
 			mStep *= -1;
 			mV += mStep;
 		}
 
-		gl.glRotatef(mV * 360f, 0.0f, 0.0f, -1.0f);
-		
+		if (!mCanBeDraw && mTestFrame)
+			return;
+
+		// }
+
+		if (mTexture.getTexture() == 0 && !init(gl))
+			return;
+
+		if (!mTimer.isRunning())
+			return;
+
+		mV = mTimer.getAnimationValue();
+
+		utils.checkGLError(gl);
+		gl.glPushMatrix();
+
+		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
+
+		gl.glRotatef(mV * mTestMaxDegree, 0.0f, 0.0f, -1.0f);
+
 		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBufferBuffer);
 		gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
 
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-		
+
 		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
@@ -141,22 +154,40 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 	public void OnAnimationStart() {
 		mCanBeDraw = !mCanBeDraw;
 		mFrameCount = 0;
+		
+		Render.RequestRender(true);
 	}
 
 	@Override
 	public void OnAnimationUpdate(float last_v, float new_v) {
 		mFrameCount++;
+		Render.RequestRender(true);
 	}
 
 	@Override
 	public void OnAnimationEnd() {
-		Log.e("TestSprite:", mCanBeDraw + ":\t" + mFrameCount + "-- \t" + mV
-				* 360);
+		if (mCanBeDraw) {
+			Log.e("TestSprite:", mCanBeDraw + ":\t" + mFrameCount + "-- \t"
+					+ mV * 360);
+		} else {
+			Log.w("TestSprite:", mCanBeDraw + ":\t" + mFrameCount + "-- \t"
+					+ mV * 360);
+		}
 		StartTimer();
+		
+		Render.RequestRender(true);
 	}
 
 	private void StartTimer() {
-		mTimer = GLTimer.ValeOf(0, 1, mTestDuration, this);
+		if (mTimer == null) {
+			mTimer = GLTimer.ValeOf(-1, 1, mTestDuration, this);
+		} else {
+
+			float[] args = mTimer.getAnimationArgs();
+
+			mTimer = GLTimer.ValeOf(args[1], args[0], (long) args[2], this);
+		}
+
 		mTimer.start();
 	}
 }
