@@ -88,6 +88,10 @@ public class Render implements GLSurfaceView.Renderer {
 	public MainScene2D getMainScene() {
 		return mMainScene;
 	}
+	
+	public IGLGestureListener getGestrueListener() {
+		return mMainScene;
+	}
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {

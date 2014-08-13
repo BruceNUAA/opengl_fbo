@@ -3,7 +3,9 @@ package com.test.gl_draw;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-public class MainScene2D {
+import android.util.Log;
+
+public class MainScene2D implements IGLGestureListener {
 	private SpriteManager mSpriteManger = new SpriteManager();
 
 	public MainScene2D() {
@@ -48,6 +50,51 @@ public class MainScene2D {
 		for (ISprite iSprite : mSpriteManger) {
 			iSprite.onDrawFrame(gl);
 		}
+	}
+
+	@Override
+	public void onDown(float x, float y) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+	}
+
+	@Override
+	public void onShowPress(float x, float y) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+	}
+
+	@Override
+	public void onSingleTapUp(float x, float y) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+	}
+
+	@Override
+	public void onScroll(float start_x, float start_y, float cur_x,
+			float cur_y, float distanceX, float distanceY) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+
+	}
+
+	@Override
+	public void onLongPress(float x, float y) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+	}
+
+	@Override
+	public void onFling(float start_x, float start_y, float cur_x, float cur_y,
+			float velocityX, float velocityY) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
+	}
+
+	@Override
+	public void onUp(float x, float y) {
+		Log.d("IGLGestureListener:",
+				Thread.currentThread().getStackTrace()[2].toString());
 	}
 
 }
