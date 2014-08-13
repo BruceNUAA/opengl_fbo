@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 
 public class Texture {
 
@@ -46,9 +47,14 @@ public class Texture {
 		mTextureOriginW = b.getWidth();
 		mTextureOriginH = b.getHeight();
 
-		int new_w = (int) utils.cellPowerOf2(mTextureOriginW);
-		int new_h = (int) utils.cellPowerOf2(mTextureOriginH);
-
+		int new_w = mTextureOriginW;
+		int new_h = mTextureOriginH;
+		
+		if (!utils.checkIfContextSupportsNPOT(gl)) {
+			new_w = (int) utils.cellPowerOf2(mTextureOriginW);
+			new_h = (int) utils.cellPowerOf2(mTextureOriginH);
+		}
+		
 		float map_w = b.getWidth() / (float) new_w;
 		float map_h = b.getHeight() / (float) new_h;
 		float map_x = (1 - map_w) / 2;
@@ -56,11 +62,15 @@ public class Texture {
 
 		mTextRectF.set(map_x, map_y, map_x + map_w, map_y + map_h);
 
-		Bitmap resizedBitmap = resizeBitmap(b, new_w, new_h);
+		if (new_w != mTextureOriginW || new_h != mTextureOriginH) {
+			Bitmap resizedBitmap = resizeBitmap(b, new_w, new_h);
 
-		mTexture[0] = utils.loadTexture(gl, resizedBitmap);
+			mTexture[0] = utils.loadTexture(gl, resizedBitmap);
 
-		resizedBitmap.recycle();
+			resizedBitmap.recycle();
+		} else {
+			mTexture[0] = utils.loadTexture(gl, b);
+		}
 
 		return mTexture[0] != 0;
 	}
@@ -71,8 +81,13 @@ public class Texture {
 		mTextureOriginW = w;
 		mTextureOriginH = h;
 
-		int new_w = (int) utils.cellPowerOf2(mTextureOriginW);
-		int new_h = (int) utils.cellPowerOf2(mTextureOriginH);
+		int new_w = mTextureOriginW;
+		int new_h = mTextureOriginH;
+		
+		if (!utils.checkIfContextSupportsNPOT(gl)) {
+			new_w = (int) utils.cellPowerOf2(mTextureOriginW);
+			new_h = (int) utils.cellPowerOf2(mTextureOriginH);
+		}
 
 		float map_w = w / (float) new_w;
 		float map_h = h / (float) new_h;

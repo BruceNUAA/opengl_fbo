@@ -81,7 +81,7 @@ public class Sprite2D implements ISprite {
 	}
 
 	private boolean RefreshData(GL10 gl) {
-		if (mDataProvider == null || mDataProvider.getRenderBitmap() == null)
+		if (mDataProvider == null)
 			return false;
 
 		float[] rect = mDataProvider.getRenderRect();

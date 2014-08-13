@@ -76,6 +76,7 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 			mSpriteFBO.setDataProvider(mSpriteDataProviderFBO);
 
 			mFrameBuffer.setSurfaceWidth((int) mRenderRectF.width(),
+					(int) mRenderRectF.height(), (int) mRenderRectF.width(),
 					(int) mRenderRectF.height());
 			mFrameBuffer.setRenderSprite2D(mSpriteFBO, mSprite2d, mSprite2d2);
 		}
