@@ -10,12 +10,12 @@ import android.util.Log;
 
 import com.example.gl_fbo.BufferUtil;
 import com.test.gl_draw.GLTimer;
-import com.test.gl_draw.ISprite;
 import com.test.gl_draw.Render;
+import com.test.gl_draw.Sprite2D;
 import com.test.gl_draw.Texture;
 import com.test.gl_draw.utils;
 
-public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
+public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
 
 	private Texture mTexture = new Texture();
 
@@ -35,10 +35,10 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	//
 	private int mFrameCount = 0;
-	private int mTestDuration = 1000;
+	private int mTestDuration = 8000;
 	private boolean mCanBeDraw = false;
 	private boolean mTestFrame = false;
-	private int mTestMaxDegree = 10;
+	private int mTestMaxDegree = 180;
 
 	public TestSprite1(Bitmap bitmap) {
 		mBitmap = bitmap;
@@ -98,15 +98,12 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 		return true;
 	}
 
-	@Override
 	public void onSurfaceCreated(GL10 gl) {
 	}
 
-	@Override
 	public void onSurfaceChanged(GL10 gl, int w, int h) {
 	}
 
-	@Override
 	public void onDrawFrame(GL10 gl) {
 
 		// test {
@@ -180,7 +177,7 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	private void StartTimer() {
 		if (mTimer == null) {
-			mTimer = GLTimer.ValeOf(-1, 1, mTestDuration, this);
+			mTimer = GLTimer.ValeOf(1, 0, mTestDuration, this);
 		} else {
 
 			float[] args = mTimer.getAnimationArgs();

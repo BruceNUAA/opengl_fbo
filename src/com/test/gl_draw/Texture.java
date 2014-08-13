@@ -3,22 +3,43 @@ package com.test.gl_draw;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Bitmap.Config;
 
 public class Texture {
 
 	private RectF mTextRectF = new RectF();
 	private int[] mTexture = { 0 };
+	private int mTextureOriginW = 0;
+	private int mTextureOriginH = 0;
+
+	// 仅用来判断纹理是否被重复加载
+	private Bitmap mTureBitmap = null;
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
+	}
 
 	public boolean Init(GL10 gl, Bitmap b) {
-		utils.checkEGLContextOK();
+		if (b == null) {
+			return false;
+		} else if (b.sameAs(mTureBitmap)) {
+			return true;
+		}
 
-		int new_w = (int) cellPowerOf2(b.getWidth());
-		int new_h = (int) cellPowerOf2(b.getHeight());
+		UnLoad(gl);
+
+		mTureBitmap = b;
+
+		mTextureOriginW = b.getWidth();
+		mTextureOriginH = b.getHeight();
+
+		int new_w = (int) cellPowerOf2(mTextureOriginW);
+		int new_h = (int) cellPowerOf2(mTextureOriginH);
 
 		float map_w = b.getWidth() / (float) new_w;
 		float map_h = b.getHeight() / (float) new_h;
@@ -32,15 +53,18 @@ public class Texture {
 		mTexture[0] = utils.loadTexture(gl, resizedBitmap);
 
 		resizedBitmap.recycle();
-		
+
 		return mTexture[0] != 0;
 	}
 
 	public void Init(GL10 gl, int w, int h) {
-		utils.checkEGLContextOK();
+		UnLoad(gl);
 
-		int new_w = (int) cellPowerOf2(w);
-		int new_h = (int) cellPowerOf2(h);
+		mTextureOriginW = w;
+		mTextureOriginH = h;
+
+		int new_w = (int) cellPowerOf2(mTextureOriginW);
+		int new_h = (int) cellPowerOf2(mTextureOriginH);
 
 		float map_w = w / (float) new_w;
 		float map_h = h / (float) new_h;
@@ -53,6 +77,8 @@ public class Texture {
 	}
 
 	public void UnLoad(GL10 gl) {
+		mTureBitmap = null;
+
 		utils.checkEGLContextOK();
 
 		if (mTexture[0] != 0) {
@@ -69,7 +95,11 @@ public class Texture {
 		return mTexture[0];
 	}
 
-	// 
+	public int[] getTextSize() {
+		return new int[] { mTextureOriginW, mTextureOriginH };
+	}
+
+	//
 	private long cellPowerOf2(long n) {
 		n--;
 		n |= n >> 1;

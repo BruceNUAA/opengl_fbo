@@ -9,20 +9,18 @@ import junit.framework.Assert;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.test.TestSprite1;
-import com.test.gl_draw.test.TestSprite2;
+import com.test.gl_draw.test.TestSprite2D;
 
 public class Render implements GLSurfaceView.Renderer {
 
 	// static block {
-	public static int MSG_RENDER_DESTORY = 0;
-	public static int MSG_RENDER_TEST = 1;
-
 	private static Render sRender = null;
 
 	public static void RegistTimer(GLTimer timer) {
@@ -71,6 +69,9 @@ public class Render implements GLSurfaceView.Renderer {
 
 	private Context mAPPContext = null;
 
+	private int mRenderW = 0;
+	private int mRenderH = 0;
+
 	//
 	public Render(Context app_context, IRenderMsg iRenderMsg) {
 		Assert.assertTrue(sRender == null);
@@ -104,6 +105,9 @@ public class Render implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onSurfaceChanged(GL10 gl, final int w, final int h) {
+		mRenderW = w;
+		mRenderH = h;
+
 		mMainScene.onSurfaceChanged(gl, w, h);
 
 		mMainUIHandler.post(new Runnable() {
@@ -129,14 +133,20 @@ public class Render implements GLSurfaceView.Renderer {
 
 	public void test() {
 		Context context = Render.sRender.mAPPContext;
-		if (false) {
+		if (true) {
 			Bitmap test_img = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.img);
 			Bitmap test_img2 = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.port_img);
 
-			Render.sRender.getMainScene().getSpriteManager()
-					.adddSprite(new TestSprite2(test_img, test_img2));
+			RectF render_rect = new RectF(0, 0, mRenderW, mRenderH);
+
+			TestSprite2D testSprite2D = new TestSprite2D(render_rect, test_img,
+					test_img2);
+			
+			for (ISprite i : testSprite2D.getSprite()) {
+				Render.sRender.getMainScene().getSpriteManager().adddSprite(i);
+			}
 
 		} else {
 			if (true) {

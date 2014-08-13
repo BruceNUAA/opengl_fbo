@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import com.test.gl_draw.utils;
 
@@ -45,16 +46,24 @@ class Renderer implements GLSurfaceView.Renderer {
 	 */
 	private static final boolean DEBUG_RENDER_OFFSCREEN_ONSCREEN = false;
 
+	private int mX = 1;
+
 	public void onDrawFrame(GL10 gl) {
 		utils.checkGLError(gl);
 		if (mContextSupportsFrameBufferObject) {
 			GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
 			if (DEBUG_RENDER_OFFSCREEN_ONSCREEN) {
 				drawOffscreenImage(gl, mSurfaceWidth, mSurfaceHeight);
+
 			} else {
-				gl11ep.glBindFramebufferOES(
-						GL11ExtensionPack.GL_FRAMEBUFFER_OES, mFramebuffer);
-				drawOffscreenImage(gl, mFramebufferWidth, mFramebufferHeight);
+				Log.d("0000000000000", mX + "------------------");
+			
+				if (mX-- > 0) {
+					gl11ep.glBindFramebufferOES(
+							GL11ExtensionPack.GL_FRAMEBUFFER_OES, mFramebuffer);
+					drawOffscreenImage(gl, mFramebufferWidth,
+							mFramebufferHeight);		
+				}
 				gl11ep.glBindFramebufferOES(
 						GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 				drawOnscreen(gl, mSurfaceWidth, mSurfaceHeight);
@@ -74,7 +83,7 @@ class Renderer implements GLSurfaceView.Renderer {
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		utils.checkEGLContextOK();
-		
+
 		mContextSupportsFrameBufferObject = utils
 				.checkIfContextSupportsFrameBufferObject(gl);
 		if (mContextSupportsFrameBufferObject) {
@@ -117,5 +126,10 @@ class Renderer implements GLSurfaceView.Renderer {
 		gl.glLoadIdentity();
 		mTxImage.draw(gl, -width / 2.0f, -height / 2.0f);
 		mTxImage2.draw(gl, -100.f, -100);
+		{
+			
+			mTxImage.draw(gl, -width / 2.0f, -height / 2.0f);
+			mTxImage2.draw(gl, -100.f, -100);
+		}
 	}
 }
