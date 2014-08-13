@@ -61,20 +61,18 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 					bitmap2.getHeight());
 			mSprite2d2.setDataProvider(mSpriteDataProvider2);
 		}
-		
-		if (mTestFrameBuffer) {
-		//	mSpriteDataProvider.setRotateDegree(180);
-			//mSpriteDataProvider2.setRotateDegree(180);
 
+		if (mTestFrameBuffer) {
 			// mSpriteDataProvider2.setOrigin(0, 100);
-			mSpriteDataProviderFBO.setBitmap(bitmap2);
 			mSpriteDataProviderFBO.setAlpha(1);
 
 			mSpriteDataProviderFBO.setRotateOrigin(0, 800);
 
-			mSpriteDataProviderFBO.setRect(-bitmap2.getWidth() / 2,
-					-bitmap2.getHeight() / 2, bitmap2.getWidth(),
-					bitmap2.getHeight());
+			float w = mRenderRectF.width() * 0.8f;
+			float h = mRenderRectF.height() * 0.8f;
+
+			mSpriteDataProviderFBO.setRect(-w / 2, -h / 2, w, h);
+
 			mSpriteFBO.setDataProvider(mSpriteDataProviderFBO);
 
 			mFrameBuffer.setSurfaceWidth((int) mRenderRectF.width(),
