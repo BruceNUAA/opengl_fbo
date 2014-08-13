@@ -60,7 +60,7 @@ public class FrameBuffer implements Render.IRenderFrame {
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
 				mFramebuffer[0]);
 
-		set2DScene(gl, (int) mRealSize[0], (int) mRealSize[1]);
+		set2DScene(gl, (int) mRealSize[0], (int) mRealSize[1], true);
 
 		for (ISprite i : mISprites) {
 			i.onDrawFrame(gl);
@@ -70,7 +70,7 @@ public class FrameBuffer implements Render.IRenderFrame {
 
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 
-		set2DScene(gl, (int) mRenderSize[0], (int) mRenderSize[1]);
+		set2DScene(gl, (int) mRenderSize[0], (int) mRenderSize[1], false);
 		gl.glPopMatrix();
 
 		utils.checkGLError(gl);
@@ -78,17 +78,17 @@ public class FrameBuffer implements Render.IRenderFrame {
 
 	private void UnloadOnNextFrame(GL10 gl) {
 		GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
-		
+
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
 				mFramebuffer[0]);
 		gl11ep.glFramebufferTexture2DOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
 				GL11ExtensionPack.GL_COLOR_ATTACHMENT0_OES, GL10.GL_TEXTURE_2D,
 				0, 0);
 		utils.checkGLError(gl);
-		
+
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 		utils.deleteFrameBuffers(gl, mFramebuffer);
-		
+
 		mFramebuffer[0] = 0;
 		mISprites = null;
 
@@ -105,15 +105,19 @@ public class FrameBuffer implements Render.IRenderFrame {
 			UnloadOnNextFrame(gl);
 			Render.UnRegistFrameCallback(this);
 		}
-		
+
 		mNextFrame--;
 	}
 
-	private void set2DScene(GL10 gl, int w, int h) {
+	// framebuffer的坐标方向与屏幕默认的相反，所以要特殊处理
+	private void set2DScene(GL10 gl, int w, int h, boolean is_frame_buffer) {
 		gl.glViewport(0, 0, w, h);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
 		gl.glLoadIdentity();
-		gl.glOrthof(-w / 2.0f, w / 2.0f, h / 2.0f, -h / 2.0f, -1, 1);
+
+		int sign = is_frame_buffer ? -1 : 1;
+		gl.glOrthof(-w / 2.0f, w / 2.0f, sign * h / 2.0f, -sign * h / 2.0f, -1,
+				1);
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 	}
 }
