@@ -104,6 +104,8 @@ public class FrameBuffer implements Render.IRenderFrame {
 		} else if (mNextFrame == 0) {
 			UnloadOnNextFrame(gl);
 			Render.UnRegistFrameCallback(this);
+		} else {
+			Assert.assertTrue(false);
 		}
 
 		mNextFrame--;
