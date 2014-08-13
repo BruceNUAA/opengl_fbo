@@ -35,7 +35,7 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 
 	//
 	private int mFrameCount = 0;
-	private int mTestDuration = 4000;
+	private int mTestDuration = 1000;
 	private boolean mCanBeDraw = false;
 	private boolean mTestFrame = false;
 	private int mTestMaxDegree = 10;
@@ -154,7 +154,7 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 	public void OnAnimationStart() {
 		mCanBeDraw = !mCanBeDraw;
 		mFrameCount = 0;
-		
+
 		Render.RequestRender(true);
 	}
 
@@ -174,7 +174,7 @@ public class TestSprite1 implements ISprite, GLTimer.OnAnimatListener {
 					+ mV * 360);
 		}
 		StartTimer();
-		
+
 		Render.RequestRender(true);
 	}
 

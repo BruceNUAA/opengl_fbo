@@ -1,9 +1,5 @@
 package com.test.gl_draw;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLDisplay;
-
 import junit.framework.Assert;
 import android.content.Context;
 import android.graphics.PixelFormat;
@@ -20,34 +16,10 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg {
 	public GlView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		mRender = new Render(context.getApplicationContext(), this);
-		if (false) {
-			setEGLConfigChooser(8, 8, 8, 8, 0, 0);
-		} else {
-			setEGLConfigChooser(new EGLConfigChooser() {
-				@Override
-				public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-					int[] attrList = new int[] {
-							//
-							EGL10.EGL_SURFACE_TYPE, EGL10.EGL_WINDOW_BIT, //
-							EGL10.EGL_DEPTH_SIZE, 24, //
-							EGL10.EGL_BUFFER_SIZE, 32,//
-							EGL10.EGL_SAMPLE_BUFFERS, 1,//
-							EGL10.EGL_SAMPLES, 4, //
-							EGL10.EGL_NONE //
-					};
-
-					EGLConfig[] configOut = new EGLConfig[1];
-					int[] configNumOut = new int[1];
-					egl.eglChooseConfig(display, attrList, configOut, 1,
-							configNumOut);
-
-					return configOut[0];
-				}
-			});
-		}
+		setEGLConfigChooser(8, 8, 8, 8, 0, 0);
 
 		setRenderer(mRender);
-		//setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+		// setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		setZOrderOnTop(true);
@@ -80,7 +52,7 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg {
 		} else {
 			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		}
-		
+
 		requestRender();
 	}
 
