@@ -1,4 +1,4 @@
-package com.test.gl_draw;
+package com.test.gl_draw.utils;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLContext;

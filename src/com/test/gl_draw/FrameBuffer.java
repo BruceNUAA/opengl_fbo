@@ -5,13 +5,17 @@ import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import junit.framework.Assert;
 
-public class FrameBuffer implements Render.IRenderFrame {
+import com.test.gl_draw.igl_draw.IFrameBuffer;
+import com.test.gl_draw.igl_draw.ISprite;
+import com.test.gl_draw.utils.utils;
+
+public class FrameBuffer implements IFrameBuffer {
 	protected Texture mTexture = new Texture();
 
 	private int[] mDesireSize = { 0, 0 };
 	private int[] mRealSize = { 0, 0 };
 
-	private int[] mRenderSize = { 0, 0 };
+	private float[] mRenderSize = { 0, 0 };
 
 	private int[] mFramebuffer = { 0 };
 
@@ -60,7 +64,7 @@ public class FrameBuffer implements Render.IRenderFrame {
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
 				mFramebuffer[0]);
 
-		set2DScene(gl, (int) mRealSize[0], (int) mRealSize[1], true);
+		SetUpScene(gl, (int) mRealSize[0], (int) mRealSize[1]);
 
 		for (ISprite i : mISprites) {
 			i.onDrawFrame(gl);
@@ -70,7 +74,7 @@ public class FrameBuffer implements Render.IRenderFrame {
 
 		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 
-		set2DScene(gl, (int) mRenderSize[0], (int) mRenderSize[1], false);
+		RestoreScene(gl, (int) mRenderSize[0], (int) mRenderSize[1]);
 		gl.glPopMatrix();
 
 		utils.checkGLError(gl);
@@ -98,7 +102,6 @@ public class FrameBuffer implements Render.IRenderFrame {
 
 	@Override
 	public void OnFrame(GL10 gl) {
-
 		if (mNextFrame == 1) {
 			DrawOnFirstFrame(gl);
 		} else if (mNextFrame == 0) {
@@ -111,15 +114,35 @@ public class FrameBuffer implements Render.IRenderFrame {
 		mNextFrame--;
 	}
 
-	// framebuffer的坐标方向与屏幕默认的相反，所以要特殊处理
-	private void set2DScene(GL10 gl, int w, int h, boolean is_frame_buffer) {
-		gl.glViewport(0, 0, w, h);
-		gl.glMatrixMode(GL10.GL_PROJECTION);
-		gl.glLoadIdentity();
-
-		int sign = is_frame_buffer ? -1 : 1;
-		gl.glOrthof(-w / 2.0f, w / 2.0f, sign * h / 2.0f, -sign * h / 2.0f, -1,
-				1);
-		gl.glMatrixMode(GL10.GL_MODELVIEW);
+	@Override
+	public void SetUpScene(GL10 gl, int w, int h) {
+		Assert.assertTrue(false);
 	}
+
+	@Override
+	public SpriteManager getSpriteManager() {
+		Assert.assertTrue(false);
+		return null;
+	}
+
+	@Override
+	public void onSurfaceCreated(GL10 gl) {
+		Assert.assertTrue(false);
+	}
+
+	@Override
+	public void onSurfaceChanged(GL10 gl, int w, int h) {
+		Assert.assertTrue(false);
+	}
+
+	@Override
+	public void onDrawFrame(GL10 gl) {
+		Assert.assertTrue(false);
+	}
+
+	@Override
+	public void RestoreScene(GL10 gl, int w, int h) {
+		Assert.assertTrue(false);
+	}
+
 }

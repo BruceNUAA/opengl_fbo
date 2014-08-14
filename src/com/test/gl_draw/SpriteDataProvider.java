@@ -1,5 +1,7 @@
 package com.test.gl_draw;
 
+import com.test.gl_draw.igl_draw.ISprite;
+
 import android.graphics.Bitmap;
 
 public class SpriteDataProvider implements ISprite.IDataProvider {

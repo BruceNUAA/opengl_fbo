@@ -1,4 +1,4 @@
-package com.test.gl_draw;
+package com.test.gl_draw.igl_draw;
 
 public interface IGLGestureListener {
 	void onDown(float x, float y);

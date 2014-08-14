@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.gl_fbo.R;
+import com.test.gl_draw.d2.MainScene2D;
+import com.test.gl_draw.igl_draw.IGLGestureListener;
 
 public class GlView extends GLSurfaceView implements Render.IRenderMsg,
 		View.OnTouchListener, GestureDetector.OnGestureListener {
@@ -24,7 +26,9 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg,
 		super(context, attrs);
 		this.setOnTouchListener(this);
 		mGestureDector = new GestureDetector(context, this);
-		mRender = new Render(context.getApplicationContext(), this);
+		MainScene2D scene2d = new MainScene2D();
+		
+		mRender = new Render(context.getApplicationContext(), this, scene2d, scene2d);
 
 		mIGLGestureListener = mRender.getGestrueListener();
 		setEGLConfigChooser(8, 8, 8, 8, 0, 0);

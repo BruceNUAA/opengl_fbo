@@ -1,15 +1,15 @@
-package com.test.gl_draw.test;
+package com.test.gl_draw.d2.test;
 
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
-import com.test.gl_draw.FrameBuffer2D;
 import com.test.gl_draw.GLTimer;
-import com.test.gl_draw.ISprite;
 import com.test.gl_draw.Render;
-import com.test.gl_draw.Sprite2D;
 import com.test.gl_draw.SpriteDataProvider;
+import com.test.gl_draw.d2.FrameBuffer2D;
+import com.test.gl_draw.d2.Sprite2D;
+import com.test.gl_draw.igl_draw.ISprite;
 
 public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 

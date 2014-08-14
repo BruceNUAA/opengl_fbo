@@ -15,8 +15,11 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.example.gl_fbo.R;
-import com.test.gl_draw.test.TestSprite1;
-import com.test.gl_draw.test.TestFrameBuffer2D;
+import com.test.gl_draw.d2.test.TestFrameBuffer2D;
+import com.test.gl_draw.d2.test.TestSprite1;
+import com.test.gl_draw.igl_draw.IGLGestureListener;
+import com.test.gl_draw.igl_draw.IScene;
+import com.test.gl_draw.igl_draw.ISprite;
 
 public class Render implements GLSurfaceView.Renderer {
 
@@ -60,7 +63,8 @@ public class Render implements GLSurfaceView.Renderer {
 	// }
 
 	// /
-	private MainScene2D mMainScene;
+	private IScene mMainScene;
+	private IGLGestureListener mGestureListener;
 
 	private Handler mMainUIHandler;
 	private IRenderMsg mIRenderMsg;
@@ -73,30 +77,32 @@ public class Render implements GLSurfaceView.Renderer {
 	private int mRenderH = 0;
 
 	//
-	public Render(Context app_context, IRenderMsg iRenderMsg) {
+	public Render(Context app_context, IRenderMsg iRenderMsg, IScene scene,
+			IGLGestureListener gestureListener) {
 		Assert.assertTrue(sRender == null);
 		mAPPContext = app_context;
 
+		mMainScene = scene;
+		mGestureListener = gestureListener;
 		sRender = this;
-		mMainScene = new MainScene2D();
 
 		mMainUIHandler = new Handler(Looper.getMainLooper());
 		mIRenderMsg = iRenderMsg;
 		mRenderFameCallBack = new CopyOnWriteArrayList<Render.IRenderFrame>();
 	}
 
-	public MainScene2D getMainScene() {
+	public IScene getMainScene() {
 		return mMainScene;
 	}
-	
+
 	public IGLGestureListener getGestrueListener() {
-		return mMainScene;
+		return mGestureListener;
 	}
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 
-		mMainScene.onSurfaceCreated(gl, config);
+		mMainScene.onSurfaceCreated(gl);
 
 		mMainUIHandler.post(new Runnable() {
 
@@ -145,8 +151,8 @@ public class Render implements GLSurfaceView.Renderer {
 
 			RectF render_rect = new RectF(0, 0, mRenderW, mRenderH);
 
-			TestFrameBuffer2D testSprite2D = new TestFrameBuffer2D(render_rect, test_img,
-					test_img2);
+			TestFrameBuffer2D testSprite2D = new TestFrameBuffer2D(render_rect,
+					test_img, test_img2);
 
 			for (ISprite i : testSprite2D.getSprite()) {
 				Render.sRender.getMainScene().getSpriteManager().adddSprite(i);

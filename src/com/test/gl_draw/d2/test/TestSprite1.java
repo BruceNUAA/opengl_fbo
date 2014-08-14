@@ -1,4 +1,4 @@
-package com.test.gl_draw.test;
+package com.test.gl_draw.d2.test;
 
 import java.nio.FloatBuffer;
 
@@ -8,12 +8,12 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
-import com.example.gl_fbo.BufferUtil;
 import com.test.gl_draw.GLTimer;
 import com.test.gl_draw.Render;
-import com.test.gl_draw.Sprite2D;
 import com.test.gl_draw.Texture;
-import com.test.gl_draw.utils;
+import com.test.gl_draw.d2.Sprite2D;
+import com.test.gl_draw.utils.BufferUtil;
+import com.test.gl_draw.utils.utils;
 
 public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
 

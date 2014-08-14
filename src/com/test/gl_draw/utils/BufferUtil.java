@@ -1,4 +1,4 @@
-package com.example.gl_fbo;
+package com.test.gl_draw.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

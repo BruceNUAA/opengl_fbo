@@ -2,6 +2,8 @@ package com.test.gl_draw;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import com.test.gl_draw.utils.utils;
+
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;

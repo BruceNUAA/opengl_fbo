@@ -3,6 +3,8 @@ package com.test.gl_draw;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import com.test.gl_draw.igl_draw.ISprite;
+
 public class SpriteManager implements Iterable<ISprite> {
 	private ArrayList<ISprite> mSprites = new ArrayList<ISprite>();
 

@@ -1,12 +1,15 @@
-package com.test.gl_draw;
+package com.test.gl_draw.d2;
 
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import com.test.gl_draw.Texture;
+import com.test.gl_draw.igl_draw.ISprite;
+import com.test.gl_draw.utils.BufferUtil;
+
 import android.graphics.RectF;
 
-import com.example.gl_fbo.BufferUtil;
 
 public class Sprite2D implements ISprite {
 

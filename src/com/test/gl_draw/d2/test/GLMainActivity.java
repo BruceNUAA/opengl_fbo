@@ -1,4 +1,4 @@
-package com.test.gl_draw.test;
+package com.test.gl_draw.d2.test;
 
 import com.test.gl_draw.GlView;
 
