@@ -6,9 +6,9 @@ import android.util.Log;
 
 import com.test.gl_draw.GLTimer;
 import com.test.gl_draw.Render;
-import com.test.gl_draw.SpriteDataProvider;
 import com.test.gl_draw.d2.FrameBuffer2D;
 import com.test.gl_draw.d2.Sprite2D;
+import com.test.gl_draw.d2.SpriteDataProvider2D;
 import com.test.gl_draw.igl_draw.ISprite;
 
 public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
@@ -18,13 +18,13 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 	private FrameBuffer2D mFrameBuffer = new FrameBuffer2D();
 	private Sprite2D mSpriteFBO = new Sprite2D();
 
-	private SpriteDataProvider mSpriteDataProviderFBO = new SpriteDataProvider();
+	private SpriteDataProvider2D mSpriteDataProviderFBO = new SpriteDataProvider2D();
 
 	private Sprite2D mSprite2d = new Sprite2D();
 	private Sprite2D mSprite2d2 = new Sprite2D();
 
-	private SpriteDataProvider mSpriteDataProvider = new SpriteDataProvider();
-	private SpriteDataProvider mSpriteDataProvider2 = new SpriteDataProvider();
+	private SpriteDataProvider2D mSpriteDataProvider = new SpriteDataProvider2D();
+	private SpriteDataProvider2D mSpriteDataProvider2 = new SpriteDataProvider2D();
 
 	private RectF mRenderRectF = new RectF();
 	//

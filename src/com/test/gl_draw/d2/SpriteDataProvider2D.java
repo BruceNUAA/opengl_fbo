@@ -1,10 +1,10 @@
-package com.test.gl_draw;
+package com.test.gl_draw.d2;
 
 import com.test.gl_draw.igl_draw.ISprite;
 
 import android.graphics.Bitmap;
 
-public class SpriteDataProvider implements ISprite.IDataProvider {
+public class SpriteDataProvider2D implements ISprite.IDataProvider {
 
 	private Bitmap mBitmap;
 	private float[] mRectF = new float[4];
@@ -13,7 +13,7 @@ public class SpriteDataProvider implements ISprite.IDataProvider {
 	private float mAlpha = 1;
 	private float mRotateDegree;
 
-	public SpriteDataProvider() {
+	public SpriteDataProvider2D() {
 	}
 
 	@Override
