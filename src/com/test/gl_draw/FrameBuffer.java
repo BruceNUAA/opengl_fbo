@@ -45,7 +45,7 @@ public class FrameBuffer implements IFrameBuffer {
 	private void DrawOnFirstFrame(GL10 gl) {
 		if (!utils.checkIfContextSupportsNPOT(gl)) {
 			mRealSize[0] = (int) utils.cellPowerOf2(mDesireSize[0]);
-			mRealSize[1] = (int) utils.cellPowerOf2(mDesireSize[0]);
+			mRealSize[1] = (int) utils.cellPowerOf2(mDesireSize[1]);
 		}
 
 		Assert.assertTrue(utils.checkIfContextSupportsFrameBufferObject(gl));
