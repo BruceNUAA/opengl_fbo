@@ -31,8 +31,8 @@ public class MainScene2D implements IGLGestureListener, IScene {
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 
 		// *** 启动该标记，在三星手机上会花屏 ****
-		//gl.glEnable(GL10.GL_BLEND);
-		//gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+		gl.glEnable(GL10.GL_BLEND);
+		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		// **********************************
 		
 		gl.glEnable(GL10.GL_TEXTURE_2D);

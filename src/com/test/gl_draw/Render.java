@@ -145,9 +145,9 @@ public class Render implements GLSurfaceView.Renderer {
 		Context context = Render.sRender.mAPPContext;
 		if (true) {
 			Bitmap test_img = BitmapFactory.decodeResource(
-					context.getResources(), R.drawable.img);
-			Bitmap test_img2 = BitmapFactory.decodeResource(
 					context.getResources(), R.drawable.port_img);
+			Bitmap test_img2 = BitmapFactory.decodeResource(
+					context.getResources(), R.drawable.ic_launcher);
 
 			RectF render_rect = new RectF(0, 0, mRenderW, mRenderH);
 
