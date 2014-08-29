@@ -12,9 +12,11 @@ import android.view.View;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.d2.MainScene2D;
+import com.test.gl_draw.d2.test.CustomGLSurfaceView;
 import com.test.gl_draw.igl_draw.IGLGestureListener;
+import com.test.gl_draw.utils.utils;
 
-public class GlView extends GLSurfaceView implements Render.IRenderMsg,
+public class GlView extends CustomGLSurfaceView implements Render.IRenderMsg,
 		View.OnTouchListener, GestureDetector.OnGestureListener {
 
 	private Render mRender;
@@ -31,8 +33,6 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg,
 		mRender = new Render(context.getApplicationContext(), this, scene2d, scene2d);
 
 		mIGLGestureListener = mRender.getGestrueListener();
-		setEGLConfigChooser(8, 8, 8, 8, 0, 0);
-
 		setRenderer(mRender);
 		// setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
@@ -47,6 +47,7 @@ public class GlView extends GLSurfaceView implements Render.IRenderMsg,
 		if (event.getAction() == MotionEvent.ACTION_UP) {
 			final float x = event.getX();
 			final float y = event.getY();
+			utils.checkEGLContextOK();
 			queueEvent(new Runnable() {
 
 				@Override

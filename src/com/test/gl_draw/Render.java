@@ -10,7 +10,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.RectF;
-import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -20,8 +19,9 @@ import com.test.gl_draw.d2.test.TestSprite1;
 import com.test.gl_draw.igl_draw.IGLGestureListener;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ISprite;
+import com.test.gl_draw.d2.test.CustomGLSurfaceView;
 
-public class Render implements GLSurfaceView.Renderer {
+public class Render implements CustomGLSurfaceView.Renderer {
 
 	// static block {
 	private static Render sRender = null;
