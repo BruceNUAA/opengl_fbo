@@ -9,6 +9,7 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 import com.example.gl_fbo.R;
+import com.test.gl_draw.GlView;
 import com.test.gl_draw.utils.utils;
 
 public class GLMainActivity extends Activity {
@@ -17,14 +18,16 @@ public class GLMainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.getWindow().getDecorView().setBackgroundColor(Color.WHITE);
-		setContentView(R.layout.activity_main);
+		setContentView(new GlView(this, null));
 	}
 
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		
+		EglHelper.getInstance().init();
+		if(true)
+			return;
 		
 		//utils.checkEGLContextOK();
 		 {

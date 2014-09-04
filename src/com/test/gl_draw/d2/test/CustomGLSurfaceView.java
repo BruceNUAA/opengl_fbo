@@ -327,7 +327,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         private void stopEglSurfaceLocked() {
             if (mHaveEglSurface) {
                 mHaveEglSurface = false;
-                mEglHelper.destroySurface();
+                EglHelper.getInstance().destroySurface();
             }
         }
 
@@ -337,13 +337,12 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
          */
         private void stopEglContextLocked() {
             if (mHaveEglContext) {
-                mEglHelper.finish();
+            	EglHelper.getInstance().finish();
                 mHaveEglContext = false;
                 sGLThreadManager.releaseEglContextLocked(this);
             }
         }
         private void guardedRun() throws InterruptedException {
-            mEglHelper = new EglHelper();
             mHaveEglContext = false;
             mHaveEglSurface = false;
             try {
@@ -415,7 +414,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                             // When pausing, optionally terminate EGL:
                             if (pausing) {
                                 if (sGLThreadManager.shouldTerminateEGLWhenPausing()) {
-                                    mEglHelper.finish();
+                                	EglHelper.getInstance().finish();
                                 }
                             }
 
@@ -450,12 +449,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                                     if (askedToReleaseEglContext) {
                                         askedToReleaseEglContext = false;
                                     } else if (sGLThreadManager.tryAcquireEglContextLocked(this)) {
-                                        try {
-                                            mEglHelper.start();
-                                        } catch (RuntimeException t) {
-                                            sGLThreadManager.releaseEglContextLocked(this);
-                                            throw t;
-                                        }
+                           
                                         mHaveEglContext = true;
                                         createEglContext = true;
 
@@ -501,7 +495,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     if (createEglSurface) {
                         
                     	
-                        if (!mEglHelper.AttatchSurfaceView(mGLSurfaceViewWeakRef.get())) {
+                        if (!EglHelper.getInstance().AttatchSurfaceView(mGLSurfaceViewWeakRef.get())) {
                             synchronized(sGLThreadManager) {
                                 mSurfaceIsBad = true;
                                 sGLThreadManager.notifyAll();
@@ -512,7 +506,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                     }
 
                     if (createGlInterface) {
-                        gl = (GL10) mEglHelper.createGL();
+                        gl = (GL10) EglHelper.getInstance().getGL();
 
                         createGlInterface = false;
                     }
@@ -521,7 +515,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                       
                         CustomGLSurfaceView view = mGLSurfaceViewWeakRef.get();
                         if (view != null) {
-                            view.mRenderer.onSurfaceCreated(gl, mEglHelper.mEglConfig);
+                            view.mRenderer.onSurfaceCreated(gl, EglHelper.getInstance().mEglConfig);
                         }
                         createEglContext = false;
                     }
@@ -542,7 +536,7 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
                             view.mRenderer.onDrawFrame(gl);
                         }
                     }
-                    int swapError = mEglHelper.swap();
+                    int swapError = EglHelper.getInstance().swap();
                     switch (swapError) {
                         case EGL10.EGL_SUCCESS:
                             break;
@@ -755,8 +749,6 @@ public class CustomGLSurfaceView extends SurfaceView implements SurfaceHolder.Ca
         private boolean mSizeChanged = true;
 
         // End of member variables protected by the sGLThreadManager monitor.
-
-        private EglHelper mEglHelper;
 
         /**
          * Set once at thread construction time, nulled out when the parent view is garbage

@@ -25,15 +25,6 @@ public class EglHelper {
 	}
 
 	public void init() {
-		start();
-	}
-
-	/**
-	 * Initialize EGL for a given configuration spec.
-	 * 
-	 * @param configSpec
-	 */
-	public void start() {
 		/*
 		 * Get an EGL instance
 		 */
@@ -136,7 +127,7 @@ public class EglHelper {
 	 * 
 	 * @return
 	 */
-	GL createGL() {
+	public GL getGL() {
 
 		GL gl = mEglContext.getGL();
 		return gl;

@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.example.gl_fbo.R;
+import com.test.gl_draw.d2.test.EglHelper;
 import com.test.gl_draw.d2.test.TestFrameBuffer2D;
 import com.test.gl_draw.d2.test.TestSprite1;
 import com.test.gl_draw.igl_draw.IGLGestureListener;
@@ -131,6 +132,7 @@ public class Render implements CustomGLSurfaceView.Renderer {
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
+		gl = (GL10)EglHelper.getInstance().getGL();
 		for (IRenderFrame iframe : mRenderFameCallBack)
 			iframe.OnFrame(gl);
 		mMainScene.onDrawFrame(gl);

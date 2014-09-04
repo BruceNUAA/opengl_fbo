@@ -5,6 +5,7 @@ import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import junit.framework.Assert;
 
+import com.test.gl_draw.d2.test.EglHelper;
 import com.test.gl_draw.igl_draw.IFrameBuffer;
 import com.test.gl_draw.igl_draw.ISprite;
 import com.test.gl_draw.utils.utils;
@@ -39,7 +40,9 @@ public class FrameBuffer implements IFrameBuffer {
 		mISprites = sprites;
 
 		mNextFrame = 1;
-		Render.RegistFrameCallback(this);
+		GL10 gl10 = (GL10)EglHelper.getInstance().getGL();
+		OnFrame(gl10);
+		OnFrame(gl10);
 	}
 
 	private void DrawOnFirstFrame(GL10 gl) {
