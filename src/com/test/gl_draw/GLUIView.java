@@ -18,18 +18,17 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.test.gl_draw.d2.MainScene2D;
-import com.test.gl_draw.d2.test.GLRootScene;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.glview.GLRootScene;
 import com.test.gl_draw.igl_draw.IGLDispatchEvent;
-import com.test.gl_draw.igl_draw.IGLGestureListener;
+import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.utils.ThreadUtils;
 
-public class GLView extends GLSurfaceView implements GLRender.IRenderMsg,
+public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         View.OnTouchListener, GestureDetector.OnGestureListener, IGLDispatchEvent {
 
     // static
-    private static GLView sMultiWindowView = null;
+    private static GLUIView sMultiWindowView = null;
 
     public static boolean PostRenderEvent(Runnable r) {
         if (sMultiWindowView == null)
@@ -43,17 +42,17 @@ public class GLView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     private GLRender mRender;
     private GestureDetector mGestureDector;
-    private MainScene2D mMainScene2D = new GLRootScene();
-    private IGLGestureListener mIGLGestureListener;
+    private GLRootScene mRootScene = new GLRootScene();
+    private ITouchEvent mIGLGestureListener;
 
     private List<Runnable> mRendeInitEvent = new ArrayList<Runnable>();
 
-    public GLView(Context context, AttributeSet attrs) {
+    public GLUIView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.setOnTouchListener(this);
         mGestureDector = new GestureDetector(context, this);
         
-        mRender = new GLRender(this, mMainScene2D, mMainScene2D);
+        mRender = new GLRender(this, mRootScene);
 
         mIGLGestureListener = mRender.getGestrueListener();
 

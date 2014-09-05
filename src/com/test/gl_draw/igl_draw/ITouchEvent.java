@@ -1,6 +1,6 @@
 package com.test.gl_draw.igl_draw;
 
-public interface IGLGestureListener {
+public interface ITouchEvent {
 	void onDown(float x, float y);
 
 	void onShowPress(float x, float y);

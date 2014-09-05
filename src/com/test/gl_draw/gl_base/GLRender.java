@@ -11,7 +11,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.test.gl_draw.igl_draw.IGLGestureListener;
+import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.igl_draw.IScene;
 
 public class GLRender implements GLSurfaceView.Renderer {
@@ -82,7 +82,7 @@ public class GLRender implements GLSurfaceView.Renderer {
 
     // /
     private IScene mMainScene;
-    private IGLGestureListener mGestureListener;
+    private ITouchEvent mGestureListener;
 
     private Handler mMainUIHandler;
     private IRenderMsg mIRenderMsg;
@@ -91,12 +91,11 @@ public class GLRender implements GLSurfaceView.Renderer {
 
     private GL10 mGl;
     //
-    public GLRender(IRenderMsg iRenderMsg, IScene scene,
-            IGLGestureListener gestureListener) {
+    public GLRender(IRenderMsg iRenderMsg, IScene scene) {
         Assert.assertTrue(!isRenderOK());
 
         mMainScene = scene;
-        mGestureListener = gestureListener;
+        mGestureListener = scene.getEventHandle();
 
         mMainUIHandler = new Handler(Looper.getMainLooper());
         mIRenderMsg = iRenderMsg;
@@ -107,7 +106,7 @@ public class GLRender implements GLSurfaceView.Renderer {
         return mMainScene;
     }
 
-    public IGLGestureListener getGestrueListener() {
+    public ITouchEvent getGestrueListener() {
         return mGestureListener;
     }
 

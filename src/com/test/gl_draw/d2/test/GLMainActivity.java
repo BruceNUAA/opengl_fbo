@@ -9,7 +9,7 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 import com.example.gl_fbo.R;
-import com.test.gl_draw.GLView;
+import com.test.gl_draw.GLUIView;
 import com.test.gl_draw.utils.utils;
 
 public class GLMainActivity extends Activity {
@@ -18,7 +18,7 @@ public class GLMainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.getWindow().getDecorView().setBackgroundColor(Color.WHITE);
-		setContentView(new GLView(this, null));
+		setContentView(new GLUIView(this, null));
 	}
 
 	@Override
