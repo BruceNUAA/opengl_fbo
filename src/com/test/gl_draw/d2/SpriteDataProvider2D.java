@@ -1,24 +1,24 @@
 package com.test.gl_draw.d2;
 
+import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.ISprite;
-
-import android.graphics.Bitmap;
 
 public class SpriteDataProvider2D implements ISprite.IDataProvider {
 
-	private Bitmap mBitmap;
+	private Texture mTexture;
 	private float[] mRectF = new float[4];
 	private float[] mOrigin = new float[2];
 	private float[] mRotateOrigin = { 0, 0 };
 	private float mAlpha = 1;
 	private float mRotateDegree;
+	private boolean mVisible = true;
 
 	public SpriteDataProvider2D() {
 	}
 
 	@Override
-	public Bitmap getRenderBitmap() {
-		return mBitmap;
+	public Texture getRenderTexture() {
+		return mTexture;
 	}
 
 	@Override
@@ -45,9 +45,14 @@ public class SpriteDataProvider2D implements ISprite.IDataProvider {
 	public float getAlpha() {
 		return Math.min(Math.max(0, mAlpha), 1);
 	}
+	
+	@Override
+	public boolean isVisible() {
+	    return mVisible;
+	}
 
-	public void setBitmap(Bitmap bitmap) {
-		mBitmap = bitmap;
+	public void setTexture(Texture texture) {
+	    mTexture = texture;
 	}
 
 	public void setAlpha(float alpha) {
@@ -73,5 +78,9 @@ public class SpriteDataProvider2D implements ISprite.IDataProvider {
 		mRectF[1] = y;
 		mRectF[2] = x + w;
 		mRectF[3] = y + h;
+	}
+	
+	public void setVisible(boolean visible) {
+	    mVisible = visible;
 	}
 }

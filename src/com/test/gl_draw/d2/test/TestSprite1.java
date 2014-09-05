@@ -8,14 +8,13 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
-import com.test.gl_draw.GLTimer;
-import com.test.gl_draw.Render;
-import com.test.gl_draw.Texture;
 import com.test.gl_draw.d2.Sprite2D;
+import com.test.gl_draw.gl_base.GLTimer;
+import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.utils.BufferUtil;
 import com.test.gl_draw.utils.utils;
 
-public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
+public class TestSprite1 extends Sprite2D implements GLTimer.OnAnimatListener {
 
 	private Texture mTexture = new Texture();
 
@@ -51,7 +50,7 @@ public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
 	private boolean init(GL10 gl) {
 		utils.checkGLError(gl);
 
-		if (!mTexture.Init(gl, mBitmap))
+		if (!mTexture.Init(mBitmap, false))
 			return false;
 
 		float x = -mBitmapW / 2.0f;
@@ -151,14 +150,11 @@ public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
 	public void OnAnimationStart() {
 		mCanBeDraw = !mCanBeDraw;
 		mFrameCount = 0;
-
-		Render.RequestRender(true);
 	}
 
 	@Override
 	public void OnAnimationUpdate(float last_v, float new_v) {
 		mFrameCount++;
-		Render.RequestRender(true);
 	}
 
 	@Override
@@ -171,8 +167,6 @@ public class TestSprite1  extends Sprite2D implements GLTimer.OnAnimatListener {
 					+ mV * 360);
 		}
 		StartTimer();
-
-		Render.RequestRender(true);
 	}
 
 	private void StartTimer() {

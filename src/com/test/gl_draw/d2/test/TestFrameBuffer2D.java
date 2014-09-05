@@ -4,11 +4,11 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
-import com.test.gl_draw.GLTimer;
-import com.test.gl_draw.Render;
 import com.test.gl_draw.d2.FrameBuffer2D;
 import com.test.gl_draw.d2.Sprite2D;
 import com.test.gl_draw.d2.SpriteDataProvider2D;
+import com.test.gl_draw.gl_base.GLTimer;
+import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.ISprite;
 
 public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
@@ -31,34 +31,35 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 	private int mFrameCount = 0;
 	private int mTestDuration = 2000;
 
-	public boolean mTestFrameBuffer = true;
+	public boolean mTestFrameBuffer = false;
 
-	public TestFrameBuffer2D(RectF render_rect, Bitmap bitmap, Bitmap bitmap2) {
+	public TestFrameBuffer2D(RectF render_rect, Texture texture1,
+			Texture texture2) {
 		mRenderRectF.set(render_rect);
 
 		{
 			mSpriteDataProvider.setOrigin(0, 0);
-			mSpriteDataProvider.setBitmap(bitmap);
+			mSpriteDataProvider.setTexture(texture1);
 			mSpriteDataProvider.setAlpha(1);
 
-			mSpriteDataProvider.setRect(-bitmap.getWidth() / 2,
-					-bitmap.getHeight() / 2, bitmap.getWidth(),
-					bitmap.getHeight());
+			int[] size = texture1.getTextSize();
+			mSpriteDataProvider.setRect(-size[0] / 2, -size[1] / 2, size[0],
+					size[1]);
 			mSprite2d.setDataProvider(mSpriteDataProvider);
 		}
 
 		{
 			// mSpriteDataProvider2.setOrigin(0, 100);
-			mSpriteDataProvider2.setBitmap(bitmap2);
+			mSpriteDataProvider2.setTexture(texture2);
 			mSpriteDataProvider2.setAlpha(1);
 
 			if (!mTestFrameBuffer) {
 				mSpriteDataProviderFBO.setRotateOrigin(0, 800);
 			}
 
-			mSpriteDataProvider2.setRect(-bitmap2.getWidth() / 2,
-					-bitmap2.getHeight() / 2, bitmap2.getWidth(),
-					bitmap2.getHeight());
+			int[] size = texture2.getTextSize();
+			mSpriteDataProvider2.setRect(-size[0] / 2, -size[1] / 2, size[0],
+					size[1]);
 			mSprite2d2.setDataProvider(mSpriteDataProvider2);
 		}
 
@@ -76,9 +77,7 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 			mSpriteFBO.setDataProvider(mSpriteDataProviderFBO);
 
 			mFrameBuffer.setSurfaceWidth((int) mRenderRectF.width(),
-					(int) mRenderRectF.height(), (int) mRenderRectF.width(),
 					(int) mRenderRectF.height());
-			mFrameBuffer.setRenderSprite2D(mSpriteFBO, mSprite2d, mSprite2d2);
 		}
 
 		StartTimer();
@@ -92,8 +91,6 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 	@Override
 	public void OnAnimationStart() {
 		mFrameCount = 0;
-
-		Render.RequestRender(true);
 	}
 
 	@Override
@@ -131,8 +128,6 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 						.getAnimationValue())) * 0.5f + 0.5f);
 			}
 		}
-
-		Render.RequestRender(true);
 	}
 
 	@Override
@@ -141,7 +136,6 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 		Log.w("TestSprite:", mTestDuration + ":\t" + mFrameCount + "-- \t");
 
 		StartTimer();
-		Render.RequestRender(true);
 	}
 
 	private void StartTimer() {

@@ -1,136 +1,125 @@
+
 package com.test.gl_draw.d2;
 
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.test.gl_draw.Texture;
-import com.test.gl_draw.igl_draw.ISprite;
-import com.test.gl_draw.utils.BufferUtil;
-
 import android.graphics.RectF;
 
+import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.igl_draw.ISprite;
+import com.test.gl_draw.utils.BufferUtil;
+import com.test.gl_draw.utils.GLHelper;
 
 public class Sprite2D implements ISprite {
 
-	private IDataProvider mDataProvider;
-	private Texture mTexture;
+    private IDataProvider mDataProvider;
 
-	private FloatBuffer mVBuffererticleBuffer;
-	private FloatBuffer mTextureBufferBuffer;
-	private FloatBuffer mColorBuffer;
+    private FloatBuffer mVBuffererticleBuffer;
+    private FloatBuffer mTextureBufferBuffer;
+    private FloatBuffer mColorBuffer;
 
-	public Sprite2D() {
-		mTexture = new Texture();
-		mVBuffererticleBuffer = BufferUtil.newFloatBuffer(4 * 3);
-		mColorBuffer = BufferUtil.newFloatBuffer(4 * 4);
-		mTextureBufferBuffer = BufferUtil.newFloatBuffer(4 * 2);
-	}
+    public Sprite2D() {
+        mVBuffererticleBuffer = BufferUtil.newFloatBuffer(4 * 2);
+        mColorBuffer = BufferUtil.newFloatBuffer(4 * 4);
+        mTextureBufferBuffer = BufferUtil.newFloatBuffer(4 * 2);
+    }
 
-	public void ChangeTexture(GL10 gl, Texture texture) {
-		if (texture == null)
-			return;
+    public void ChangeTexture(Texture texture) {
+        if (texture == null)
+            return;
+    }
 
-		mTexture.UnLoad(gl);
-		mTexture.Init(texture);
-	}
+    @Override
+    public void setDataProvider(IDataProvider provider) {
+        mDataProvider = provider;
+    }
 
-	@Override
-	public void setDataProvider(IDataProvider provider) {
-		mDataProvider = provider;
-	}
+    @Override
+    public void onSurfaceChanged(GL10 gl, int w, int h) {
 
-	@Override
-	public void onSurfaceCreated(GL10 gl) {
+    }
 
-	}
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        if (!RefreshData(gl))
+            return;
 
-	@Override
-	public void onSurfaceChanged(GL10 gl, int w, int h) {
+        gl.glPushMatrix();
+        gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
 
-	}
+        float[] origin = mDataProvider.getOrigin();
+        float[] rotate_origin = mDataProvider.getRotateOrigin();
+        GLHelper.checkGLError();
+        // calc pos
+        gl.glTranslatef(rotate_origin[0], rotate_origin[1], 0);
+        gl.glRotatef(mDataProvider.getRotateDegree(), 0, 0, 1);
+        gl.glTranslatef(-rotate_origin[0], -rotate_origin[1], 0);
+        gl.glTranslatef(origin[0], origin[1], 0);
 
-	@Override
-	public void onDrawFrame(GL10 gl) {
-		if (!RefreshData(gl))
-			return;
+        // draw
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mDataProvider.getRenderTexture().getTexture());
+        GLHelper.checkGLError();
+        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
+        gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBufferBuffer);
 
-		gl.glPushMatrix();
-		if (mDataProvider.getAlpha() < 1.0f) {
-			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
-			gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
-		}
+        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
+        //
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+        gl.glPopMatrix();
+        GLHelper.checkGLError();
+    }
 
-		float[] origin = mDataProvider.getOrigin();
-		float[] rotate_origin = mDataProvider.getRotateOrigin();
+    private boolean RefreshData(GL10 gl) {
+        if (mDataProvider == null || !mDataProvider.isVisible())
+            return false;
 
-		// calc pos
-		gl.glTranslatef(rotate_origin[0], rotate_origin[1], 0);
-		gl.glRotatef(mDataProvider.getRotateDegree(), 0, 0, 1);
-		gl.glTranslatef(-rotate_origin[0], -rotate_origin[1], 0);
-		gl.glTranslatef(origin[0], origin[1], 0);
+        float[] rect = mDataProvider.getRenderRect();
+        float[] origin = mDataProvider.getOrigin();
+        float[] rotate_origin = mDataProvider.getRotateOrigin();
+        float alpha = 0.1f;//mDataProvider.getAlpha()/2;
 
-		// draw
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
-		gl.glVertexPointer(3, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
-		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTextureBufferBuffer);
+        if (rect.length < 4 || origin.length < 2 || rotate_origin.length < 2)
+            return false;
 
-		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-		//
-		if (mDataProvider.getAlpha() < 1.0f) {
-			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
-		}
-		gl.glPopMatrix();
-	}
+        if(mDataProvider.getRenderTexture() == null || !mDataProvider.getRenderTexture().isValid())
+            return false;
 
-	private boolean RefreshData(GL10 gl) {
-		if (mDataProvider == null)
-			return false;
+        GLHelper.checkGLError();
+        float[] pos = {
+                //
+                rect[0], rect[1],//
+                rect[2], rect[1],//
+                rect[0], rect[3],//
+                rect[2], rect[3],//
+        };
+        mVBuffererticleBuffer.put(pos);
+        mVBuffererticleBuffer.position(0);
 
-		float[] rect = mDataProvider.getRenderRect();
-		float[] origin = mDataProvider.getOrigin();
-		float[] rotate_origin = mDataProvider.getRotateOrigin();
-		float alpha = mDataProvider.getAlpha();
+        float[] color = {
+                //
+                1, 1, 1, alpha,//
+                1, 1, 1, alpha,//
+                1, 1, 1, alpha,//
+                1, 1, 1, alpha,//
+        };
+        mColorBuffer.put(color);
+        mColorBuffer.position(0);
 
-		if (rect.length < 4 || origin.length < 2 || rotate_origin.length < 2)
-			return false;
+        RectF t_r = mDataProvider.getRenderTexture().getTextRect();
 
-		if (mTexture.getTexture() == 0
-				&& !mTexture.Init(gl, mDataProvider.getRenderBitmap()))
-			return false;
+        float[] f2 = {
+                //
+                t_r.left, t_r.top,//
+                t_r.right, t_r.top, //
+                t_r.left, t_r.bottom,//
+                t_r.right, t_r.bottom,
+        };
 
-		float[] pos = {
-				//
-				rect[0], rect[1], 0,//
-				rect[2], rect[1], 0,//
-				rect[0], rect[3], 0,//
-				rect[2], rect[3], 0,//
-		};
-		mVBuffererticleBuffer.put(pos);
-		mVBuffererticleBuffer.position(0);
+        mTextureBufferBuffer.put(f2);
+        mTextureBufferBuffer.position(0);
 
-		float[] color = {
-				//
-				alpha, alpha, alpha, alpha,//
-				alpha, alpha, alpha, alpha,//
-				alpha, alpha, alpha, alpha,//
-				alpha, alpha, alpha, alpha,//
-		};
-		mColorBuffer.put(color);
-		mColorBuffer.position(0);
-
-		RectF t_r = mTexture.getTextRect();
-
-		float[] f2 = {
-				//
-				t_r.left, t_r.top,//
-				t_r.right, t_r.top, //
-				t_r.left, t_r.bottom,//
-				t_r.right, t_r.bottom, };
-
-		mTextureBufferBuffer.put(f2);
-		mTextureBufferBuffer.position(0);
-
-		return true;
-	}
+        return true;
+    }
 }

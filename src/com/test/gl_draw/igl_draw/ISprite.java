@@ -1,12 +1,12 @@
 package com.test.gl_draw.igl_draw;
 
-import javax.microedition.khronos.opengles.GL10;
+import com.test.gl_draw.gl_base.Texture;
 
-import android.graphics.Bitmap;
+import javax.microedition.khronos.opengles.GL10;
 
 public interface ISprite {
 	public interface IDataProvider {
-		Bitmap getRenderBitmap();
+	    Texture getRenderTexture();
 
 		float[] getRenderRect();
 
@@ -17,11 +17,11 @@ public interface ISprite {
 		float getRotateDegree();
 
 		float getAlpha();
+		
+		boolean isVisible();
 	}
 
 	void setDataProvider(IDataProvider provider);
-
-	void onSurfaceCreated(GL10 gl);
 
 	void onSurfaceChanged(GL10 gl, int w, int h);
 

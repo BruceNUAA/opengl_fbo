@@ -1,12 +1,13 @@
-package com.test.gl_draw;
-
-import java.util.ArrayList;
-import java.util.Iterator;
+package com.test.gl_draw.gl_base;
 
 import com.test.gl_draw.igl_draw.ISprite;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 public class SpriteManager implements Iterable<ISprite> {
-	private ArrayList<ISprite> mSprites = new ArrayList<ISprite>();
+	private List<ISprite> mSprites = new CopyOnWriteArrayList<ISprite>();
 
 	public SpriteManager() {
 	}
@@ -21,6 +22,10 @@ public class SpriteManager implements Iterable<ISprite> {
 		if (mSprites.contains(s)) {
 			mSprites.remove(s);
 		}
+	}
+	
+	public void clear() {
+	    mSprites.clear();
 	}
 
 	public int count() {
