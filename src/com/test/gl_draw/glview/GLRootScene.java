@@ -79,50 +79,66 @@ public class GLRootScene implements IScene {
 
 		GLView view = new GLDragView();
 		view.setOnTouchLisener(touch);
-		view.SetBounds(new RectF(30.0f, 200, 600.0f, 800.0f));
+		view.SetBounds(new RectF(GLView.sRenderWidth * 0.1f,
+				GLView.sRenderHeight * 0.1f, GLView.sRenderWidth * 0.9f,
+				GLView.sRenderHeight * 0.9f));
 		view.SetBackgound(0x3fff0000);
 		mRootView.AddView(view);
 
 		Context cx = KApplication.sApplication;
-
 		Bitmap b = null;
 		Texture texture = null;
-		b = BitmapFactory.decodeResource(cx.getResources(), R.drawable.img);
-		GLTextureView view5 = new GLTextureView();
+		{
+
+			b = BitmapFactory.decodeResource(cx.getResources(), R.drawable.img);
+			GLTextureView view5 = new GLTextureView();
+			texture = new Texture();
+			texture.Init(b, false);
+			b.recycle();
+			view5.SetTexture(texture);
+			view5.setOnTouchLisener(touch);
+			view5.SetBounds(new RectF(0.0f, 00, 300.0f, 450.0f));
+			view5.SetBackgound(0x0fffffff);
+			view.AddView(view5);
+		}
+
+		{
+			b = BitmapFactory.decodeResource(cx.getResources(),
+					R.drawable.port_img);
+			texture = new Texture();
+			// texture2.Init("HELLO", false, 50);
+			texture.Init(b, false);
+			b.recycle();
+			GLTextureView view6 = new GLTextureView();
+			view6.SetTexture(texture);
+			view6.setOnTouchLisener(touch);
+			view6.SetBounds(new RectF(340.0f, 00, 670.0f, 450.0f));
+			view6.SetBackgound(0x0fffffff);
+			view.AddView(view6);
+		}
+
+		GLTextureView view2 = new GLTextureView();
 		texture = new Texture();
-		texture.Init(b, false);
-		b.recycle();
-		view5.SetTexture(texture);
-		view5.setOnTouchLisener(touch);
-		view5.SetBounds(new RectF(30.0f, 00, 300.0f, 450.0f));
-		view5.SetBackgound(0x0fffffff);
-		view.AddView(view5);
-
-		b = BitmapFactory
-				.decodeResource(cx.getResources(), R.drawable.port_img);
-		Texture texture2 = new Texture();
-		texture2.Init(b, false);
-		b.recycle();
-		GLTextureView view6 = new GLTextureView();
-		view6.SetTexture(texture2);
-		view6.setOnTouchLisener(touch);
-		view6.SetBounds(new RectF(300.0f, 00, 600.0f, 450.0f));
-		view6.SetBackgound(0x0fffffff);
-		view.AddView(view6);
-
-		GLView view2 = new GLView();
+		texture.Init("ID = " + view2.id(), false, 50);
+		view2.SetTexture(texture);
 		view2.setOnTouchLisener(touch);
 		view2.SetBounds(new RectF(30.0f, 15, 300.0f, 500.0f));
 		view2.SetBackgound(0x2f0000ff);
 		view.AddView(view2);
 
-		GLView view3 = new GLView();
+		GLTextureView view3 = new GLTextureView();
+		texture = new Texture();
+		texture.Init("ID = " + view3.id(), false, 50);
+		view3.SetTexture(texture);
 		view3.setOnTouchLisener(touch);
 		view3.SetBounds(new RectF(00.0f, 0, 300.0f, 200.0f));
-		view3.SetBackgound(0x2fffffff);
+		view3.SetBackgound(0x5fffff00);
 		view.AddView(view3);
 
-		GLView view4 = new GLView();
+		GLTextureView view4 = new GLTextureView();
+		texture = new Texture();
+		texture.Init("ID = " + view4.id(), false, 50);
+		view4.SetTexture(texture);
 		view4.setOnTouchLisener(touch);
 		view4.SetBounds(new RectF(30.0f, 150, 300.0f, 500.0f));
 		view4.SetBackgound(0xffff0000);

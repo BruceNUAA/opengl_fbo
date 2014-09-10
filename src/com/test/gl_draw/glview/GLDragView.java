@@ -1,5 +1,7 @@
 package com.test.gl_draw.glview;
 
+import android.graphics.RectF;
+
 import com.test.gl_draw.utils.DLog;
 
 public class GLDragView extends GLView{
@@ -9,7 +11,9 @@ public class GLDragView extends GLView{
 
 		DLog.e("scroll", Float.toString(distanceX) + "/" + Float.toString(distanceY));
 		for(IGLView v : mChildViews) {
-			v.Bounds().offset(-distanceX, -distanceY);
+			RectF rc = new RectF(v.Bounds());
+			rc.offset(-distanceX, -distanceY);
+			v.SetBounds(rc);
 		}
 
 		return true;

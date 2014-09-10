@@ -62,6 +62,7 @@ public class GLView implements IGLView {
 
 		if (mBackoundColor != color) {
 			mBackoundColor = color;
+			refreshBKData();
 			InValidate();
 		}
 	}
@@ -97,7 +98,6 @@ public class GLView implements IGLView {
 
 	@Override
 	public void OnDrawBackgound(GL10 gl) {
-		refreshData();
 
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		if (mBackoundColor != null) {
@@ -140,6 +140,7 @@ public class GLView implements IGLView {
 	public void SetBounds(RectF rc) {
 		if (rc != null && !rc.equals(mBounds)) {
 			mBounds.set(rc);
+			refreshPosData();
 			InValidate();
 		}
 	}
@@ -401,7 +402,7 @@ public class GLView implements IGLView {
 		mTouchLisener = touch;
 	}
 
-	private void refreshData() {
+	private void refreshPosData() {
 		float[] pos = {
 				//
 				mBounds.left, mBounds.top, //
@@ -411,6 +412,9 @@ public class GLView implements IGLView {
 		};
 		mVBuffererticleBuffer.put(pos);
 		mVBuffererticleBuffer.position(0);
+	}
+	
+	private void refreshBKData() {
 
 		float rgba[][] = null;
 		if (mBackoundColor.length == 1) {
