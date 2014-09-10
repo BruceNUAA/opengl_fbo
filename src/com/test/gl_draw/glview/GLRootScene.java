@@ -61,6 +61,7 @@ public class GLRootScene implements IScene {
 
 	@Override
 	public void onDestory() {
+		mRootView.Detach();
 	}
 
 	@Override
@@ -98,7 +99,7 @@ public class GLRootScene implements IScene {
 			view5.SetTexture(texture);
 			view5.setOnTouchLisener(touch);
 			view5.SetBounds(new RectF(0.0f, 00, 300.0f, 450.0f));
-			view5.SetBackgound(0x0fffffff);
+			view5.SetBackgound(0x2fffffff);
 			view.AddView(view5);
 		}
 
@@ -113,7 +114,7 @@ public class GLRootScene implements IScene {
 			view6.SetTexture(texture);
 			view6.setOnTouchLisener(touch);
 			view6.SetBounds(new RectF(340.0f, 00, 670.0f, 450.0f));
-			view6.SetBackgound(0x0fffffff);
+			view6.SetBackgound(0x2fffffff);
 			view.AddView(view6);
 		}
 

@@ -43,6 +43,8 @@ public interface IGLView extends ITouchEvent {
 	RectF VisibleBoundsInRender();
 	
 	RectF ClipBound();
+	
+	void Detach();
 
 	// 子View
 

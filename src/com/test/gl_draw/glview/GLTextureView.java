@@ -40,8 +40,13 @@ public class GLTextureView extends GLView {
 		if (!mTexture.isValid())
 			return;
 
-		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+		if (mBackoundColor != null) {
+			gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+		} else {
+			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+		}
 
+		
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mTXVBuffer);
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
@@ -49,8 +54,6 @@ public class GLTextureView extends GLView {
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
 		//
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
-
-		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 	}
 
 	private void refreshTextureData() {

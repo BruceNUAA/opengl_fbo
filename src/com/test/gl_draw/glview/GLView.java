@@ -23,7 +23,7 @@ public class GLView implements IGLView {
 	private IGLView mParent = null;
 	protected CopyOnWriteArrayList<IGLView> mChildViews = new CopyOnWriteArrayList<IGLView>();
 
-	private int[] mBackoundColor;
+	protected int[] mBackoundColor;
 	private Texture mBackgoundTexture = null;
 
 	protected FloatBuffer mVBuffererticleBuffer = BufferUtil
@@ -116,6 +116,12 @@ public class GLView implements IGLView {
 
 	}
 
+	@Override
+	public void Detach() {
+		for(IGLView v : mChildViews)
+			v.Detach();
+	}
+	
 	@Override
 	public void OnDraw(GL10 gl) {
 
