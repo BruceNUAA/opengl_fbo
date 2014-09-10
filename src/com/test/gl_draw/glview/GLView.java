@@ -82,7 +82,7 @@ public class GLView implements IGLView {
 	@Override
 	public void Draw(GL10 gl) {
 		gl.glEnable(GL10.GL_SCISSOR_TEST);
-		RectF r = VisibleBoundsInRender();
+		RectF r = ClipBound();
 
 		gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
 				(int) r.width(), (int) r.height());
@@ -164,6 +164,11 @@ public class GLView implements IGLView {
 		}
 
 		return rc;
+	}
+	
+	@Override
+	public RectF ClipBound() {
+		return VisibleBoundsInRender();
 	}
 
 	//
