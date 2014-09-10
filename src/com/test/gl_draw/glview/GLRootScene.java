@@ -48,7 +48,7 @@ public class GLRootScene implements IScene {
 
 		GLHelper.checkGLError();
 
-		test();
+		test1();
 	}
 
 	@Override
@@ -69,6 +69,48 @@ public class GLRootScene implements IScene {
 		return mRootView;
 	}
 
+	private void test1() {
+		IGLView.OnTouchLisener touch = new IGLView.OnTouchLisener() {
+			@Override
+			public boolean OnClick(IGLView v) {
+				DLog.e("Test", "Touch ID = " + v.id());
+				return true;
+			}
+		};
+		
+		GLView view = new GLDragView();
+		view.setOnTouchLisener(touch);
+		view.SetBounds(new RectF(20,
+				20, GLView.sRenderWidth - 20,
+				GLView.sRenderHeight - 20));
+		view.SetBackgound(0x3fff0000);
+		mRootView.AddView(view);
+		
+		Context cx = KApplication.sApplication;
+		Bitmap b = null;
+		Texture texture = null;
+		{
+
+			b = BitmapFactory.decodeResource(cx.getResources(), R.drawable.port_img);
+			texture = new Texture();
+			texture.Init(b, false);
+			b.recycle();
+			
+			GLRotateView view6 = new GLRotateView();
+			
+			view6.setRotateDegree(10);
+			view6.SetTexture(texture);
+			view6.setOnTouchLisener(touch);
+			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds().height());
+			bF.inset(200, 200);
+			view6.SetBounds(bF);
+			
+			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
+			view6.SetBackgound(0x2fffffff);
+			view.AddView(view6);
+		}
+	}
+	
 	private void test() {
 		IGLView.OnTouchLisener touch = new IGLView.OnTouchLisener() {
 			@Override

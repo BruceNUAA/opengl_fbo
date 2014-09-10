@@ -26,13 +26,13 @@ public class GLTextureView extends GLView {
 		else
 			mTexture.Init(texture);
 		
-		refreshTextureData();
+		refreshTextureData(Bounds());
 	}
 
 	@Override
 	public void SetBounds(RectF rc) {
 		super.SetBounds(rc);
-		refreshTextureData();
+		refreshTextureData(rc);
 	}
 	
 	@Override
@@ -56,9 +56,9 @@ public class GLTextureView extends GLView {
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
 	}
 
-	private void refreshTextureData() {
+	public void refreshTextureData(RectF rect) {
 
-		RectF rc = new RectF(Bounds());
+		RectF rc = new RectF(rect);
 		int[] size = mTexture.getTextSize();
 
 		float w = size[0];

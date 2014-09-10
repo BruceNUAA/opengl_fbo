@@ -146,7 +146,7 @@ public class GLView implements IGLView {
 	public void SetBounds(RectF rc) {
 		if (rc != null && !rc.equals(mBounds)) {
 			mBounds.set(rc);
-			refreshPosData();
+			refreshPosData(rc);
 			InValidate();
 		}
 	}
@@ -413,13 +413,13 @@ public class GLView implements IGLView {
 		mTouchLisener = touch;
 	}
 
-	private void refreshPosData() {
+	public void refreshPosData(RectF rc) {
 		float[] pos = {
 				//
-				mBounds.left, mBounds.top, //
-				mBounds.right, mBounds.top, //
-				mBounds.left, mBounds.bottom, //
-				mBounds.right, mBounds.bottom, //
+				rc.left, rc.top, //
+				rc.right, rc.top, //
+				rc.left, rc.bottom, //
+				rc.right, rc.bottom, //
 		};
 		mVBuffererticleBuffer.put(pos);
 		mVBuffererticleBuffer.position(0);
