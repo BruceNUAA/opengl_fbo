@@ -110,7 +110,9 @@ public class GLRootScene implements IScene {
 			// texture2.Init("HELLO", false, 50);
 			texture.Init(b, false);
 			b.recycle();
-			GLTextureView view6 = new GLTextureView();
+			GLRotateView view6 = new GLRotateView();
+			view6.setRotateOrigin(450, 300);
+			view6.setRotateDegree(10);
 			view6.SetTexture(texture);
 			view6.setOnTouchLisener(touch);
 			view6.SetBounds(new RectF(340.0f, 00, 670.0f, 450.0f));
