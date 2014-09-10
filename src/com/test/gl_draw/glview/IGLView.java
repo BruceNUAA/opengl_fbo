@@ -23,7 +23,7 @@ public interface IGLView extends ITouchEvent {
 
 	void InValidate();
 
-	void SetBackgound(int color);
+	void SetBackgound(int... color);
 
 	void SetBackgound(Texture texture);
 
@@ -40,7 +40,7 @@ public interface IGLView extends ITouchEvent {
 
 	RectF Bounds();
 
-	RectF BoundsInParent();
+	RectF VisibleBoundsInRender();
 
 	// 子View
 

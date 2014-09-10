@@ -37,7 +37,6 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         sMultiWindowView.doGLTask(r);
         return true;
     }
-
     //
 
     private GLRender mRender;
@@ -80,7 +79,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         });
 
         setRenderer(mRender);
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
         setPreserveEGLContextOnPause(true);

@@ -21,14 +21,19 @@ public class GLView implements IGLView {
 	private int mID = 0;
 
 	private IGLView mParent = null;
-	private CopyOnWriteArrayList<IGLView> mChildViews = new CopyOnWriteArrayList<IGLView>();
+	protected CopyOnWriteArrayList<IGLView> mChildViews = new CopyOnWriteArrayList<IGLView>();
 
-	private int mBackoundColor = Color.WHITE;
-	private Texture mTexture = null;
+	private int[] mBackoundColor;
+	private Texture mBackgoundTexture = null;
 
-	private FloatBuffer mVBuffererticleBuffer = BufferUtil
+	protected FloatBuffer mVBuffererticleBuffer = BufferUtil
 			.newFloatBuffer(4 * 2);
-	private FloatBuffer mColorBuffer = BufferUtil.newFloatBuffer(4 * 4);
+	protected FloatBuffer mTextureCoordBuffer = BufferUtil
+			.newFloatBuffer(4 * 2);
+	protected FloatBuffer mColorBuffer = BufferUtil.newFloatBuffer(4 * 4);
+
+	public static int sRenderWidth = 0;
+	public static int sRenderHeight = 0;
 
 	public GLView() {
 		mID = sID;
@@ -51,7 +56,10 @@ public class GLView implements IGLView {
 	}
 
 	@Override
-	public void SetBackgound(int color) {
+	public void SetBackgound(int... color) {
+		if (color.length != 1 && color.length != 2 && color.length != 4)
+			throw new RuntimeException("背景颜色个数设置错误！");
+
 		if (mBackoundColor != color) {
 			mBackoundColor = color;
 			InValidate();
@@ -61,10 +69,10 @@ public class GLView implements IGLView {
 	@Override
 	public void SetBackgound(Texture texture) {
 		if (texture.isValid()) {
-			if (mTexture == null)
-				mTexture = new Texture();
+			if (mBackgoundTexture == null)
+				mBackgoundTexture = new Texture();
 
-			mTexture.Init(texture);
+			mBackgoundTexture.Init(texture);
 			InValidate();
 		}
 	}
@@ -72,41 +80,40 @@ public class GLView implements IGLView {
 	// 绘制
 	@Override
 	public void Draw(GL10 gl) {
-		refreshData();
+		gl.glEnable(GL10.GL_SCISSOR_TEST);
+		RectF r = VisibleBoundsInRender();
+
+		gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
+				(int) r.width(), (int) r.height());
+
 		OnDrawBackgound(gl);
 
 		OnDraw(gl);
+
+		gl.glDisable(GL10.GL_SCISSOR_TEST);
 
 		OnDrawChilds(gl);
 	}
 
 	@Override
 	public void OnDrawBackgound(GL10 gl) {
-		/*
-		 * gl.glClearStencil(0); gl.glClear(GL10.GL_COLOR_BUFFER_BIT |
-		 * GL10.GL_DEPTH_BUFFER_BIT |GL10.GL_STENCIL_BUFFER_BIT);
-		 * 
-		 * gl.glMatrixMode(GL10.GL_MODELVIEW); gl.glLoadIdentity();
-		 * 
-		 * gl.glEnable(GL10.GL_STENCIL_TEST); gl.glStencilFunc(GL10.GL_NEVER,
-		 * 0x0, 0x0); gl.glStencilOp(GL10.GL_INCR,GL10.GL_INCR, GL10.GL_INCR);
-		 */
 		refreshData();
 
 		gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+		if (mBackoundColor != null) {
+			gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+		} else {
+			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+		}
+
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
 		gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
 		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		/*
-		 * //在模板缓冲区绘制(因为模板测试失败不能在颜色缓冲区写入) gl.glBegin(GL10.GL_LINE_STRIP); for
-		 * (double angle = 0.0; angle < 400.0; angle += 0.1) {
-		 * gl.glVertex3d(dRadius * cos(angle), dRadius * sin(angle), 0.0);
-		 * dRadius *= 1.002; } gl.glEnd();
-		 * 
-		 * //现在与颜色缓冲区在模板缓冲区对应处有线的地方不会绘制 glStencilFunc(GL10.GL_NOTEQUAL, 0x1,
-		 * 0x1); glStencilOp(GL10.GL_KEEP, GL10.GL_KEEP, GL10.GL_KEEP);
-		 */
+		
+		if (mBackoundColor == null) {
+			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
+		}
+
 	}
 
 	@Override
@@ -119,8 +126,7 @@ public class GLView implements IGLView {
 		for (IGLView v : mChildViews) {
 			gl.glPushMatrix();
 
-			RectF bounds = v.Bounds();
-			gl.glTranslatef(bounds.left, bounds.top, 0);
+			gl.glTranslatef(mBounds.left, mBounds.top, 0);
 
 			v.Draw(gl);
 
@@ -144,9 +150,19 @@ public class GLView implements IGLView {
 	}
 
 	@Override
-	public RectF BoundsInParent() {
-		// TODO Auto-generated method stub
-		return null;
+	public RectF VisibleBoundsInRender() {
+		RectF rc = new RectF(mBounds);
+
+		IGLView parent = Parent();
+		while (parent != null && !rc.isEmpty()) {
+			RectF boundF = parent.Bounds();
+			rc.offset(boundF.left, boundF.top);
+			if (!rc.intersect(boundF))
+				rc.setEmpty();
+			parent = parent.Parent();
+		}
+
+		return rc;
 	}
 
 	//
@@ -235,49 +251,154 @@ public class GLView implements IGLView {
 
 	// touch
 	@Override
-	public void onSingleTapUp(float x, float y) {
-		// TODO Auto-generated method stub
+	public boolean onSingleTapUp(float x, float y) {
 
-	}
+		boolean handled = false;
+		x -= mBounds.left;
+		y -= mBounds.top;
 
-	@Override
-	public void onScroll(float start_x, float start_y, float cur_x,
-			float cur_y, float distanceX, float distanceY) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onLongPress(float x, float y) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onFling(float start_x, float start_y, float cur_x, float cur_y,
-			float velocityX, float velocityY) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onUp(float x, float y) {
-		if (mTouchLisener != null && HitTest(x, y)) {
-			mTouchLisener.OnClick(this);
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(x, y))
+				continue;
+			if (v.onSingleTapUp(x, y)) {
+				handled = true;
+				break;
+			}
 		}
 
+		return handled;
 	}
 
 	@Override
-	public void onDown(float x, float y) {
-		// TODO Auto-generated method stub
+	public boolean onScroll(float start_x, float start_y, float cur_x,
+			float cur_y, float distanceX, float distanceY) {
+		boolean handled = false;
+		start_x -= mBounds.left;
+		start_y -= mBounds.top;
+		cur_x -= mBounds.left;
+		cur_y -= mBounds.top;
+
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(cur_x, cur_y))
+				continue;
+			if (v.onScroll(start_x, start_y, cur_x, cur_y, distanceX, distanceY)) {
+				handled = true;
+				break;
+			}
+		}
+
+		return handled;
 
 	}
 
 	@Override
-	public void onShowPress(float x, float y) {
-		// TODO Auto-generated method stub
+	public boolean onLongPress(float x, float y) {
+		boolean handled = false;
+		x -= mBounds.left;
+		y -= mBounds.top;
 
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(x, y))
+				continue;
+			if (v.onLongPress(x, y)) {
+				handled = true;
+				break;
+			}
+		}
+
+		return handled;
+
+	}
+
+	@Override
+	public boolean onFling(float start_x, float start_y, float cur_x,
+			float cur_y, float velocityX, float velocityY) {
+		boolean handled = false;
+		start_x -= mBounds.left;
+		start_y -= mBounds.top;
+		cur_x -= mBounds.left;
+		cur_y -= mBounds.top;
+
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(cur_x, cur_y))
+				continue;
+			if (v.onFling(start_x, start_y, cur_x, cur_y, velocityX, velocityY)) {
+				handled = true;
+				break;
+			}
+		}
+
+		return handled;
+
+	}
+
+	@Override
+	public boolean onUp(float x, float y) {
+		boolean handled = false;
+		x -= mBounds.left;
+		y -= mBounds.top;
+
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(x, y))
+				continue;
+			if (v.onUp(x, y)) {
+				handled = true;
+				break;
+			}
+		}
+
+		if (!handled && mTouchLisener != null) {
+			handled = mTouchLisener.OnClick(this);
+		}
+
+		return handled;
+	}
+
+	@Override
+	public boolean onDown(float x, float y) {
+		boolean handled = false;
+		x -= mBounds.left;
+		y -= mBounds.top;
+
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(x, y))
+				continue;
+			if (v.onDown(x, y)) {
+				handled = true;
+				break;
+			}
+		}
+
+		return handled;
+	}
+
+	@Override
+	public boolean onShowPress(float x, float y) {
+		boolean handled = false;
+		x -= mBounds.left;
+		y -= mBounds.top;
+
+		for (int i = mChildViews.size() - 1; i >= 0; i--) {
+			IGLView v = mChildViews.get(i);
+			if (!v.HitTest(x, y))
+				continue;
+			if (v.onShowPress(x, y)) {
+				handled = true;
+				break;
+			}
+		}
+
+		return handled;
+	}
+	
+	public void setOnTouchLisener(OnTouchLisener touch) {
+		mTouchLisener = touch;
 	}
 
 	private void refreshData() {
@@ -290,30 +411,52 @@ public class GLView implements IGLView {
 		};
 		mVBuffererticleBuffer.put(pos);
 		mVBuffererticleBuffer.position(0);
-		/*
-		 * float[] color = { //
-		 * 
-		 * 0x00 / 255.0f, 0x26 / 255.0f, 0x4c / 255.0f, alpha,// 0x00 / 255.0f,
-		 * 0x26 / 255.0f, 0x4c / 255.0f, alpha,// 0xa4 / 255.0f, 0xb9 / 255.0f,
-		 * 0xcf / 255.0f, alpha,// 0xa4 / 255.0f, 0xb9 / 255.0f, 0xcf / 255.0f,
-		 * alpha,// };
-		 */
-		float r = Color.red(mBackoundColor) / 255.0f;
-		float g = Color.green(mBackoundColor) / 255.0f;
-		float b = Color.blue(mBackoundColor) / 255.0f;
-		float a = Color.alpha(mBackoundColor) / 255.0f;
-		float[] color = {
-				//
-				r, g, b, a,//
-				r, g, b, a,//
 
-				r, g, b, a,//
+		float rgba[][] = null;
+		if (mBackoundColor.length == 1) {
+			rgba = new float[][] { { Color.red(mBackoundColor[0]) / 255.0f,
+					Color.green(mBackoundColor[0]) / 255.0f,
+					Color.blue(mBackoundColor[0]) / 255.0f,
+					Color.alpha(mBackoundColor[0]) / 255.0f, } };
 
-				r, g, b, a,//
+		} else if (mBackoundColor.length == 2) {
+			rgba = new float[][] {
+					{ Color.red(mBackoundColor[0]) / 255.0f,
+							Color.green(mBackoundColor[0]) / 255.0f,
+							Color.blue(mBackoundColor[0]) / 255.0f,
+							Color.alpha(mBackoundColor[0]) / 255.0f, },
+					{ Color.red(mBackoundColor[1]) / 255.0f,
+							Color.green(mBackoundColor[1]) / 255.0f,
+							Color.blue(mBackoundColor[1]) / 255.0f,
+							Color.alpha(mBackoundColor[1]) / 255.0f, }, };
 
-		};
-		mColorBuffer.put(color);
-		mColorBuffer.position(0);
+		} else if (mBackoundColor.length == 4) {
+			rgba = new float[][] {
+					{ Color.red(mBackoundColor[0]) / 255.0f,
+							Color.green(mBackoundColor[0]) / 255.0f,
+							Color.blue(mBackoundColor[0]) / 255.0f,
+							Color.alpha(mBackoundColor[0]) / 255.0f, },
+					{ Color.red(mBackoundColor[1]) / 255.0f,
+							Color.green(mBackoundColor[1]) / 255.0f,
+							Color.blue(mBackoundColor[1]) / 255.0f,
+							Color.alpha(mBackoundColor[1]) / 255.0f, },
+					{ Color.red(mBackoundColor[2]) / 255.0f,
+							Color.green(mBackoundColor[2]) / 255.0f,
+							Color.blue(mBackoundColor[2]) / 255.0f,
+							Color.alpha(mBackoundColor[2]) / 255.0f, },
+					{ Color.red(mBackoundColor[3]) / 255.0f,
+							Color.green(mBackoundColor[3]) / 255.0f,
+							Color.blue(mBackoundColor[3]) / 255.0f,
+							Color.alpha(mBackoundColor[3]) / 255.0f, }, };
+		}
+
+		for (int i = 0; i < rgba.length; i++) {
+			for (int j = 0; j < 4 / rgba.length; j++) {
+				int p = i * 4 / rgba.length + j;
+				for (int k = 0; k < rgba[i].length; k++) {
+					mColorBuffer.put(p * 4 + k, rgba[i][k]);
+				}
+			}
+		}
 	}
-
 }

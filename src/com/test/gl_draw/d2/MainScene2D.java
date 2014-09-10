@@ -3,6 +3,7 @@ package com.test.gl_draw.d2;
 import javax.microedition.khronos.opengles.GL10;
 
 import junit.framework.Assert;
+import android.R.bool;
 import android.util.Log;
 
 import com.test.gl_draw.gl_base.SpriteManager;
@@ -35,48 +36,55 @@ public class MainScene2D implements ITouchEvent, IScene {
 	}
 
 	@Override
-	public void onDown(float x, float y) {
+	public boolean onDown(float x, float y) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override
-	public void onShowPress(float x, float y) {
+	public boolean onShowPress(float x, float y) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override
-	public void onSingleTapUp(float x, float y) {
+	public boolean onSingleTapUp(float x, float y) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override
-	public void onScroll(float start_x, float start_y, float cur_x,
+	public boolean onScroll(float start_x, float start_y, float cur_x,
 			float cur_y, float distanceX, float distanceY) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 
 	}
 
 	@Override
-	public void onLongPress(float x, float y) {
+	public boolean onLongPress(float x, float y) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override
-	public void onFling(float start_x, float start_y, float cur_x, float cur_y,
+	public boolean onFling(float start_x, float start_y, float cur_x, float cur_y,
 			float velocityX, float velocityY) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override
-	public void onUp(float x, float y) {
+	public boolean onUp(float x, float y) {
 		Log.d("IGLGestureListener:",
 				Thread.currentThread().getStackTrace()[2].toString());
+		return false;
 	}
 
 	@Override

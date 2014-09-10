@@ -34,7 +34,7 @@ public class DLog {
 
 	public static int e(String tag, String message) {
 		if (BuildConfig.DEBUG) {
-			return Log.d(tag, message);
+			return Log.e(tag, message);
 		} else {
 			return RESULT_SUCCESS;
 		}
