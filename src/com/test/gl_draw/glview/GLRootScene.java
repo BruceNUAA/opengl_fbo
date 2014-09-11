@@ -5,11 +5,13 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.RectF;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.KApplication;
 import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.utils.DLog;
@@ -48,7 +50,7 @@ public class GLRootScene implements IScene {
 
 		GLHelper.checkGLError();
 
-		test1();
+		test();
 	}
 
 	@Override
@@ -69,6 +71,14 @@ public class GLRootScene implements IScene {
 		return mRootView;
 	}
 
+	private void test() {
+		GLView view = new GLTestView();
+		view.SetBounds(new RectF(20, 20, GLView.sRenderWidth - 20,
+				GLView.sRenderHeight - 20));
+		view.SetBackgound(Color.WHITE);
+		mRootView.AddView(view);
+	}
+
 	private void test1() {
 		IGLView.OnTouchLisener touch = new IGLView.OnTouchLisener() {
 			@Override
@@ -77,41 +87,41 @@ public class GLRootScene implements IScene {
 				return true;
 			}
 		};
-		
+
 		GLView view = new GLDragView();
 		view.setOnTouchLisener(touch);
-		view.SetBounds(new RectF(20,
-				20, GLView.sRenderWidth - 20,
+		view.SetBounds(new RectF(20, 20, GLView.sRenderWidth - 20,
 				GLView.sRenderHeight - 20));
 		view.SetBackgound(0x3fff0000);
 		mRootView.AddView(view);
-		
+
 		Context cx = KApplication.sApplication;
 		Bitmap b = null;
 		Texture texture = null;
 		{
 
-			b = BitmapFactory.decodeResource(cx.getResources(), R.drawable.port_img);
+			b = BitmapFactory.decodeResource(cx.getResources(),
+					R.drawable.port_img);
 			texture = new Texture();
 			texture.Init(b, false);
 			b.recycle();
-			
+
 			GLRotateView view6 = new GLRotateView();
-			
-			view6.setRotateDegree(10);
+
 			view6.SetTexture(texture);
 			view6.setOnTouchLisener(touch);
-			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds().height());
+			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds()
+					.height());
 			bF.inset(200, 200);
 			view6.SetBounds(bF);
-			
+
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
 			view6.SetBackgound(0x2fffffff);
 			view.AddView(view6);
 		}
 	}
-	
-	private void test() {
+
+	private void test2() {
 		IGLView.OnTouchLisener touch = new IGLView.OnTouchLisener() {
 			@Override
 			public boolean OnClick(IGLView v) {
