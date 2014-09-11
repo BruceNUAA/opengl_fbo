@@ -4,3 +4,4 @@ bin/
 build.xml
 local.properties
 *.*~
+*.DS_Store
