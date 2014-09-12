@@ -73,9 +73,10 @@ public class GLRootScene implements IScene {
 
 	private void test() {
 		GLView view = new GLTestView();
+		view.SetBackgound(0x5fffffff);
 		view.SetBounds(new RectF(100, 100, GLView.sRenderWidth - 100,
 				GLView.sRenderHeight - 100));
-		view.SetBackgound(Color.WHITE);
+		
 		mRootView.AddView(view);
 	}
 

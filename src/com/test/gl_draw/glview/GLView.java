@@ -1,17 +1,14 @@
 
 package com.test.gl_draw.glview;
 
-import java.nio.FloatBuffer;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.graphics.Color;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
-import com.test.gl_draw.utils.BufferUtil;
 import com.test.gl_draw.utils.GLHelper;
 
 public class GLView implements IGLView {
@@ -27,14 +24,7 @@ public class GLView implements IGLView {
     private IGLView mParent = null;
     protected CopyOnWriteArrayList<IGLView> mChildViews = new CopyOnWriteArrayList<IGLView>();
 
-    protected int[] mBackoundColor;
-    private Texture mBackgoundTexture = null;
-
-    private FloatBuffer mVBuffererticleBuffer = BufferUtil
-            .newFloatBuffer(4 * 2);
-    private FloatBuffer mTextureCoordBuffer = BufferUtil
-            .newFloatBuffer(4 * 2);
-    private FloatBuffer mColorBuffer = BufferUtil.newFloatBuffer(4 * 4);
+    private TextureDraw mBackgoundDraw = new TextureDraw();
 
     public static int sRenderWidth = 0;
     public static int sRenderHeight = 0;
@@ -59,25 +49,23 @@ public class GLView implements IGLView {
 
     }
 
+    public TextureDraw getBackgoundDraw() {
+    	return mBackgoundDraw;
+    }
+    
     @Override
     public void SetBackgound(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
             throw new RuntimeException("背景颜色个数设置错误！");
 
-        if (mBackoundColor != color) {
-            mBackoundColor = color;
-            refreshBKData();
-            InValidate();
-        }
+        mBackgoundDraw.SetColor(color);
+        InValidate();
     }
 
     @Override
     public void SetBackgound(Texture texture) {
         if (texture.isValid()) {
-            if (mBackgoundTexture == null)
-                mBackgoundTexture = new Texture();
-
-            mBackgoundTexture.Init(texture);
+        	mBackgoundDraw.SetTexture(texture);
             InValidate();
         }
     }
@@ -103,19 +91,17 @@ public class GLView implements IGLView {
         if (!visible())
             return;
         
-        OnDrawBackgound(gl);
-        
         gl.glEnable(GL10.GL_SCISSOR_TEST);
         RectF r = ClipBound();
-        GLHelper.checkGLError();
         
         gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
                 (int) Math.max(0, r.width()), (int) Math.max(0, r.height()));
+        OnDrawBackgound(gl);
         
         OnDraw(gl);
         
         gl.glDisable(GL10.GL_SCISSOR_TEST);
-
+        
         OnDrawChilds(gl);
         
         GLHelper.checkGLError();
@@ -123,22 +109,11 @@ public class GLView implements IGLView {
 
     @Override
     public void OnDrawBackgound(GL10 gl) {
-        if (mBackoundColor == null)
-            return;
-        
-        gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-
-        gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
-
-        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffererticleBuffer);
-        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
-        gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-
+    	mBackgoundDraw.Draw(gl);
     }
 
     @Override
     public void OnDraw(GL10 gl) {
-
     }
 
     @Override
@@ -172,8 +147,8 @@ public class GLView implements IGLView {
             for (IGLView v : mChildViews) {
                 v.onParentLayoutChange(this, tmp, mBounds);
             }
-        
-            refreshPosData(rc);
+            mBackgoundDraw.SetRenderRect(rc);
+            
             InValidate();
         }
     }
@@ -283,7 +258,7 @@ public class GLView implements IGLView {
 
     @Override
     public void AddView(IGLView view) {
-        if (view == null)
+        if (view == null || this.equals(view))
             return;
 
         view.SetParent(this);
@@ -463,85 +438,5 @@ public class GLView implements IGLView {
 
     public void setOnTouchLisener(OnTouchLisener touch) {
         mTouchLisener = touch;
-    }
-
-    public void refreshPosData(RectF rect) {
-        float[] pos = {
-                //
-                rect.left, rect.top, //
-                rect.right, rect.top, //
-                rect.left, rect.bottom, //
-                rect.right, rect.bottom, //
-        };
-        mVBuffererticleBuffer.put(pos);
-        mVBuffererticleBuffer.position(0);
-    }
-
-    public void refreshBKData() {
-
-        float rgba[][] = null;
-        if (mBackoundColor.length == 1) {
-            rgba = new float[][] {
-                {
-                        Color.red(mBackoundColor[0]) / 255.0f,
-                        Color.green(mBackoundColor[0]) / 255.0f,
-                        Color.blue(mBackoundColor[0]) / 255.0f,
-                        Color.alpha(mBackoundColor[0]) / 255.0f,
-                }
-            };
-
-        } else if (mBackoundColor.length == 2) {
-            rgba = new float[][] {
-                    {
-                            Color.red(mBackoundColor[0]) / 255.0f,
-                            Color.green(mBackoundColor[0]) / 255.0f,
-                            Color.blue(mBackoundColor[0]) / 255.0f,
-                            Color.alpha(mBackoundColor[0]) / 255.0f,
-                    },
-                    {
-                            Color.red(mBackoundColor[1]) / 255.0f,
-                            Color.green(mBackoundColor[1]) / 255.0f,
-                            Color.blue(mBackoundColor[1]) / 255.0f,
-                            Color.alpha(mBackoundColor[1]) / 255.0f,
-                    },
-            };
-
-        } else if (mBackoundColor.length == 4) {
-            rgba = new float[][] {
-                    {
-                            Color.red(mBackoundColor[0]) / 255.0f,
-                            Color.green(mBackoundColor[0]) / 255.0f,
-                            Color.blue(mBackoundColor[0]) / 255.0f,
-                            Color.alpha(mBackoundColor[0]) / 255.0f,
-                    },
-                    {
-                            Color.red(mBackoundColor[1]) / 255.0f,
-                            Color.green(mBackoundColor[1]) / 255.0f,
-                            Color.blue(mBackoundColor[1]) / 255.0f,
-                            Color.alpha(mBackoundColor[1]) / 255.0f,
-                    },
-                    {
-                            Color.red(mBackoundColor[2]) / 255.0f,
-                            Color.green(mBackoundColor[2]) / 255.0f,
-                            Color.blue(mBackoundColor[2]) / 255.0f,
-                            Color.alpha(mBackoundColor[2]) / 255.0f,
-                    },
-                    {
-                            Color.red(mBackoundColor[3]) / 255.0f,
-                            Color.green(mBackoundColor[3]) / 255.0f,
-                            Color.blue(mBackoundColor[3]) / 255.0f,
-                            Color.alpha(mBackoundColor[3]) / 255.0f,
-                    },
-            };
-        }
-
-        for (int i = 0; i < rgba.length; i++) {
-            for (int j = 0; j < 4 / rgba.length; j++) {
-                int p = i * 4 / rgba.length + j;
-                for (int k = 0; k < rgba[i].length; k++) {
-                    mColorBuffer.put(p * 4 + k, rgba[i][k]);
-                }
-            }
-        }
     }
 }

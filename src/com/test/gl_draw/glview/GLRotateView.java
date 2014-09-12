@@ -2,9 +2,9 @@ package com.test.gl_draw.glview;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import com.test.gl_draw.igl_draw.IGLView;
-
 import android.graphics.RectF;
+
+import com.test.gl_draw.igl_draw.IGLView;
 
 public class GLRotateView extends GLTextureView {
 
@@ -32,8 +32,8 @@ public class GLRotateView extends GLTextureView {
 
 		rc.set(-rc.width() / 2, -rc.height() / 2, rc.width() / 2,
 				rc.height() / 2);
-		refreshTextureData(rc);
-		refreshPosData(rc);
+		getDraw().SetRenderRect(rc);
+		getBackgoundDraw().SetRenderRect(rc);
 	}
 
 	@Override

@@ -10,9 +10,14 @@ import com.test.gl_draw.igl_draw.IGLView;
 public class GLTestView extends GLView {
 	private NinePatchDraw mNineDraw = new NinePatchDraw();
 
+	public GLTestView() {
+		mNineDraw.ShowBorderInside(true);
+	}
+	
 	@Override
 	public void onParentLayoutChange(IGLView parent, RectF old_r, RectF new_r) {
 		SetBounds(new_r);
+		
 	}
 
 	@Override
@@ -30,7 +35,7 @@ public class GLTestView extends GLView {
 			TabThumbManager tb = TabThumbManager.getInstance();
 			mNineDraw.setRect(tb.getShadowTexture(), tb.getShadowStratchPos(),
 					tb.getShadowBorder());
-			rect.inset(100, 100);
+	
 			mNineDraw.setRect(rect);
 		}
 
