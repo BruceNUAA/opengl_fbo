@@ -10,10 +10,14 @@ import com.test.gl_draw.gl_base.Texture;
 public interface IGLView extends ITouchEvent {
 
     // 事件
-    interface OnTouchLisener {
+    interface OnTouchListener {
         boolean OnClick(IGLView v);
     }
 
+    interface OnVisibleChangeListener {
+        void OnVisibleChange(IGLView v);
+    }
+    
     //
     int id();
 
@@ -50,6 +54,8 @@ public interface IGLView extends ITouchEvent {
     RectF VisibleBoundsInRender();
 
     RectF ClipBound();
+    
+    RectF ClipBoundForChildren();
 
     void Detach();
     

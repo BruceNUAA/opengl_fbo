@@ -16,7 +16,9 @@ public class GLView implements IGLView {
     public static int sID = 0;
 
     private RectF mBounds = new RectF();
-    private OnTouchLisener mTouchLisener = null;
+    private OnTouchListener mTouchLisener = null;
+
+    private OnVisibleChangeListener mVisibleListener = null;
 
     private boolean mVisible = true;
     private int mID = 0;
@@ -46,13 +48,12 @@ public class GLView implements IGLView {
 
     @Override
     public void InValidate() {
-
     }
 
     public TextureDraw getBackgoundDraw() {
-    	return mBackgoundDraw;
+        return mBackgoundDraw;
     }
-    
+
     @Override
     public void SetBackgound(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
@@ -65,7 +66,7 @@ public class GLView implements IGLView {
     @Override
     public void SetBackgound(Texture texture) {
         if (texture.isValid()) {
-        	mBackgoundDraw.SetTexture(texture);
+            mBackgoundDraw.SetTexture(texture);
             InValidate();
         }
     }
@@ -81,35 +82,46 @@ public class GLView implements IGLView {
         return mVisible;
     }
     
-    public void SetVisible(boolean visible ) {
-        mVisible = visible;
+    public void setOnVisibleListener(OnVisibleChangeListener li) {
+        mVisibleListener = li;
     }
-    
+
+    public void SetVisible(boolean visible) {
+        if (mVisible == visible)
+            return;
+        
+        mVisible = visible;
+
+        if (mVisibleListener != null) {
+            mVisibleListener.OnVisibleChange(this);
+        }
+    }
+
     // 绘制
     @Override
     public void Draw(GL10 gl) {
         if (!visible())
             return;
-        
+
         gl.glEnable(GL10.GL_SCISSOR_TEST);
         RectF r = ClipBound();
-        
+
         gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
                 (int) Math.max(0, r.width()), (int) Math.max(0, r.height()));
         OnDrawBackgound(gl);
-        
+
         OnDraw(gl);
-        
+
         gl.glDisable(GL10.GL_SCISSOR_TEST);
-        
+
         OnDrawChilds(gl);
-        
+
         GLHelper.checkGLError();
     }
 
     @Override
     public void OnDrawBackgound(GL10 gl) {
-    	mBackgoundDraw.Draw(gl);
+        mBackgoundDraw.Draw(gl);
     }
 
     @Override
@@ -120,35 +132,42 @@ public class GLView implements IGLView {
     public void OnDrawChilds(GL10 gl) {
         if (mChildViews.isEmpty())
             return;
-        
+
         gl.glPushMatrix();
         gl.glTranslatef(mBounds.left, mBounds.top, 0);
-        
+
         for (IGLView v : mChildViews) {
-            gl.glPushMatrix();    
-            
+            gl.glPushMatrix();
+
             v.Draw(gl);
 
             gl.glPopMatrix();
         }
-       
+
         gl.glPopMatrix();
     }
 
     //
 
+    public void SetBounds(float...xyzh) {
+        if (xyzh.length < 4)
+            return;
+        
+        mBounds.set(xyzh[0], xyzh[1], xyzh[2] + xyzh[0], xyzh[3] + xyzh[1]);
+    }
+    
     @Override
     public void SetBounds(RectF rc) {
         if (rc != null && !rc.equals(mBounds)) {
             RectF tmp = new RectF(mBounds);
-            
+
             mBounds.set(rc);
-            
+
             for (IGLView v : mChildViews) {
                 v.onParentLayoutChange(this, tmp, mBounds);
             }
             mBackgoundDraw.SetRenderRect(rc);
-            
+
             InValidate();
         }
     }
@@ -188,12 +207,17 @@ public class GLView implements IGLView {
     public RectF ClipBound() {
         return VisibleBoundsInRender();
     }
-    
+
+    @Override
+    public RectF ClipBoundForChildren() {
+        return VisibleBoundsInRender();
+    }
+
     @Override
     public void onParentLayoutChange(IGLView parent, RectF old_r, RectF new_r) {
         if (mChildViews.isEmpty())
             return;
-        
+
         for (IGLView v : mChildViews) {
             v.onParentLayoutChange(this, old_r, new_r);
         }
@@ -269,7 +293,7 @@ public class GLView implements IGLView {
         mChildViews.add(view);
 
     }
-    
+
     @Override
     public void RemoveAllView() {
         mChildViews.clear();
@@ -436,7 +460,7 @@ public class GLView implements IGLView {
         return handled;
     }
 
-    public void setOnTouchLisener(OnTouchLisener touch) {
+    public void setOnTouchLisener(OnTouchListener touch) {
         mTouchLisener = touch;
     }
 }

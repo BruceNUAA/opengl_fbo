@@ -17,6 +17,10 @@ public class GLTextureView extends GLView {
 		mDraw.SetFillMode(mode);
 	}
 	
+	public void SetColor(int... color) {
+	    mDraw.SetColor(color);
+	}
+	
 	public TextureDraw getDraw() {
 		return mDraw;
 	}
@@ -24,7 +28,7 @@ public class GLTextureView extends GLView {
 	@Override
 	public void SetBounds(RectF rc) {
 		super.SetBounds(rc);
-		mDraw.SetRenderRect(rc);
+		mDraw.SetRenderRect(new RectF());
 	}
 
 	@Override
