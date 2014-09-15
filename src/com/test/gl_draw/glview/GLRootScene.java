@@ -49,7 +49,7 @@ public class GLRootScene implements IScene {
 
 		GLHelper.checkGLError();
 		
-		test();
+		test1();
 	}
 
 	@Override

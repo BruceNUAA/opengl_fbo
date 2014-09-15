@@ -28,7 +28,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         View.OnTouchListener, GestureDetector.OnGestureListener, IGLDispatchEvent {
 
     // static
-    private static GLUIView sMultiWindowView = null;
+    public static GLUIView sMultiWindowView = null;
 
     public static boolean PostRenderEvent(Runnable r) {
         if (sMultiWindowView == null)

@@ -5,6 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.graphics.Rect;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
@@ -432,7 +433,8 @@ public class GLView implements IGLView {
             IGLView v = mChildViews.get(i);
             if (!v.HitTest(x, y))
                 continue;
-            if (v.onDown(x, y)) {
+            RectF b = v.Bounds();
+            if (v.onDown(x - b.left, y - b.top)) {
                 handled = true;
                 break;
             }

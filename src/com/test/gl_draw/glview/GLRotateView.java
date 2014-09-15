@@ -2,10 +2,15 @@ package com.test.gl_draw.glview;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.R.bool;
 import android.graphics.Matrix;
 import android.graphics.RectF;
+import android.util.Log;
 
+import com.test.gl_draw.GLUIView;
+import com.test.gl_draw.KApplication;
 import com.test.gl_draw.igl_draw.IGLView;
+import com.test.gl_draw.utils.CustomToast;
 
 public class GLRotateView extends GLTextureView {
 
@@ -47,7 +52,7 @@ public class GLRotateView extends GLTextureView {
 		return (float) (Math
 				.asin((Bounds().centerX() - GLView.sRenderWidth / 2)
 						/ mRotateOrigin[1])
-				/ Math.PI * 180);
+				/ Math.PI * 180*2);
 	}
 
 	@Override
@@ -170,5 +175,21 @@ public class GLRotateView extends GLTextureView {
 		double y = point[0] * sin + point[1] * cos;
 
 		return x >= 0 && x <= w && y >= -h && y <= 0;
+	}
+	
+	@Override
+    public boolean onDown(final float x, final float y) {
+		final boolean sx = true;
+	    GLUIView.sMultiWindowView.doUITask(new Runnable() {
+			
+			@Override
+			public void run() {
+				String string = Boolean.toString(sx) + "|" + Float.toString(x) + "-" + Float.toString(y);
+				Log.e("---", string);
+				CustomToast.showLong(KApplication.sApplication, string);
+				
+			}
+		});
+		return true;
 	}
 }
