@@ -5,6 +5,7 @@ import javax.microedition.khronos.opengles.GL11;
 
 import android.graphics.RectF;
 import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.GLUIView;
 import com.test.gl_draw.igl_draw.IGLView;
@@ -160,7 +161,7 @@ public class GLRotateView extends GLTextureView {
 		};
 
 		for (int i = 0; i < points.length; i++) {
-			android.opengl.Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
+			Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
 					points[i], 0);
 		}
 
