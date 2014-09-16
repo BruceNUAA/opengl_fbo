@@ -1,16 +1,13 @@
 package com.test.gl_draw.glview;
 
 import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 
-import android.R.bool;
-import android.graphics.Matrix;
 import android.graphics.RectF;
-import android.util.Log;
+import android.opengl.GLES20;
 
 import com.test.gl_draw.GLUIView;
-import com.test.gl_draw.KApplication;
 import com.test.gl_draw.igl_draw.IGLView;
-import com.test.gl_draw.utils.CustomToast;
 
 public class GLRotateView extends GLTextureView {
 
@@ -22,7 +19,7 @@ public class GLRotateView extends GLTextureView {
 
 	private int mDrawInRotateModeC = 0;
 
-	private Matrix mDisplayMatrix = new Matrix();
+	private float[] mGLMatrix = new float[16];
 
 	public void setRotateDegree(float d) {
 		mRotateDegree = d;
@@ -52,7 +49,7 @@ public class GLRotateView extends GLTextureView {
 		return (float) (Math
 				.asin((Bounds().centerX() - GLView.sRenderWidth / 2)
 						/ mRotateOrigin[1])
-				/ Math.PI * 180*2);
+				/ Math.PI * 180 * 2);
 	}
 
 	@Override
@@ -75,6 +72,11 @@ public class GLRotateView extends GLTextureView {
 		throw new RuntimeException();
 	}
 
+	@Override
+	public boolean HitTest(final float x, final float y) {
+		return HitTestPoint(x, y);
+	}
+
 	public void SetRotateEven(GL10 gl) {
 		if (mDrawInRotateModeC == 1) {
 			RestoreRotateEven(gl);
@@ -82,12 +84,14 @@ public class GLRotateView extends GLTextureView {
 			throw new RuntimeException(
 					"SetRotateEven and RestoreRotateEven should be used Pairly!");
 		}
+
 		gl.glPushMatrix();
 		gl.glTranslatef(mRotateOrigin[0], mRotateOrigin[1], 0);
 		gl.glRotatef(mRotateDegree, 0, 0, 1);
-		gl.glTranslatef(-mRotateOrigin[0], -mRotateOrigin[1], 0);
+		gl.glTranslatef(mOrigin[0] - mRotateOrigin[0], mOrigin[1]
+				- mRotateOrigin[1], 0);
 
-		gl.glTranslatef(mOrigin[0], mOrigin[1], 0);
+		GLES20.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mGLMatrix, 0);
 
 		mDrawInRotateModeC++;
 	}
@@ -138,56 +142,77 @@ public class GLRotateView extends GLTextureView {
 	}
 
 	public boolean isPtInRegin(float x, float y) {
-		// 统一坐标系
-		float[] pt_v = { x - mOrigin[0], y - mOrigin[1] };
+		return HitTestPoint(x, y);
+	}
+	
+	private boolean HitTestPoint(float x, float y) {
+		float[] pt_v = {x,  y };
+		PtInRender(pt_v);
 
-		float offset_y = -Bounds().bottom;
+		RectF rc = Bounds();
 
-		float[] map_rect_pts = { 0, offset_y, Bounds().width(), offset_y,
-				Bounds().width(), Bounds().height() + offset_y, 0,
-				Bounds().height() + offset_y };
+		float[][] points = {
+				//
+				{ rc.left, rc.top, 0, 1 },//
+				{ rc.right, rc.top, 0, 1 },//
+				{ rc.right, rc.bottom, 0, 1 },//
+				{ rc.left, rc.bottom, 0, 1 },//
+		};
 
-		mDisplayMatrix.mapPoints(map_rect_pts);
+		for (int i = 0; i < points.length; i++) {
+			android.opengl.Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
+					points[i], 0);
+		}
 
-		return Hittest(pt_v, map_rect_pts);
+		return Hittest(pt_v, points);
 	}
 
-	private static boolean Hittest(float[] point, float[] rect_pts) {
-		if (point.length < 2 || rect_pts.length < 8)
+	//
+	// 0------------------1
+	// --------------------
+	// --------------------
+	// --------------------
+	// 3------------------2
+	//
+	private boolean Hittest(float[] point, float[][] rect_pts) {
+		if (point.length < 2 || rect_pts.length < 4)
 			return false;
 
-		double tan_angle = -(rect_pts[5] - rect_pts[7])
-				/ (rect_pts[4] - rect_pts[6]);
+		double tan_angle = -(rect_pts[2][1] - rect_pts[3][1])
+				/ (rect_pts[2][0] - rect_pts[3][0]);
 		double cos = 1 / Math.sqrt(1 + tan_angle * tan_angle);
 		double sin = tan_angle / Math.sqrt(1 + tan_angle * tan_angle);
 
-		double w = Math.sqrt((rect_pts[2] - rect_pts[0])
-				* (rect_pts[2] - rect_pts[0]) + (rect_pts[3] - rect_pts[1])
-				* (rect_pts[3] - rect_pts[1]));
-		double h = Math.sqrt((rect_pts[6] - rect_pts[0])
-				* (rect_pts[6] - rect_pts[0]) + (rect_pts[7] - rect_pts[1])
-				* (rect_pts[7] - rect_pts[1]));
+		double w = Math.sqrt((rect_pts[1][0] - rect_pts[0][0])
+				* (rect_pts[1][0] - rect_pts[0][0])
+				+ (rect_pts[1][1] - rect_pts[0][1])
+				* (rect_pts[1][1] - rect_pts[0][1]));
+		double h = Math.sqrt((rect_pts[3][0] - rect_pts[0][0])
+				* (rect_pts[3][0] - rect_pts[0][0])
+				+ (rect_pts[3][1] - rect_pts[0][1])
+				* (rect_pts[3][1] - rect_pts[0][1]));
 
-		point[0] -= rect_pts[6];
-		point[1] -= rect_pts[7];
+		point[0] -= rect_pts[3][0];
+		point[1] -= rect_pts[3][1];
 
 		double x = point[0] * cos - point[1] * sin;
 		double y = point[0] * sin + point[1] * cos;
 
 		return x >= 0 && x <= w && y >= -h && y <= 0;
 	}
-	
+
 	@Override
-    public boolean onDown(final float x, final float y) {
+	public boolean onDown(final float x, final float y) {
 		final boolean sx = true;
-	    GLUIView.sMultiWindowView.doUITask(new Runnable() {
-			
+		GLUIView.sMultiWindowView.doUITask(new Runnable() {
+
 			@Override
 			public void run() {
-				String string = Boolean.toString(sx) + "|" + Float.toString(x) + "-" + Float.toString(y);
-				Log.e("---", string);
-				CustomToast.showLong(KApplication.sApplication, string);
-				
+				String string = Boolean.toString(sx) + "|" + Float.toString(x)
+						+ "-" + Float.toString(y);
+				// Log.e("---", string);
+				// CustomToast.showLong(KApplication.sApplication, string);
+
 			}
 		});
 		return true;

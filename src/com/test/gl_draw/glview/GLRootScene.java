@@ -89,15 +89,15 @@ public class GLRootScene implements IScene {
 		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
 			@Override
 			public boolean OnClick(IGLView v) {
-				DLog.e("Test", "Touch ID = " + v.id());
+			//	DLog.e("Test", "Touch ID = " + v.id());
 				return true;
 			}
 		};
 
 		GLView view = new GLDragView();
 		view.setOnTouchLisener(touch);
-		view.SetBounds(new RectF(20, 20, GLView.sRenderWidth - 20,
-				GLView.sRenderHeight - 20));
+		view.SetBounds(new RectF(100, 100, GLView.sRenderWidth - 30,
+				GLView.sRenderHeight - 30));
 		view.SetBackgound(0x3fff0000);
 		mRootView.AddView(view);
 
@@ -118,7 +118,7 @@ public class GLRootScene implements IScene {
 			view6.setOnTouchLisener(touch);
 			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds()
 					.height());
-			bF.inset(200, 200);
+			bF.inset(100, 100);
 			view6.SetBounds(bF);
 
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
@@ -131,7 +131,7 @@ public class GLRootScene implements IScene {
 		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
 			@Override
 			public boolean OnClick(IGLView v) {
-				DLog.e("Test", "Touch ID = " + v.id());
+				//DLog.e("Test", "Touch ID = " + v.id());
 				return true;
 			}
 		};
