@@ -101,21 +101,10 @@ public class FrameBuffer {
 	}
 
 	public void Destory(GL10 gl) {
-		if (!GLHelper.isFrameBuffer(mFramebuffer))
-			return;
-
-		GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
-
-		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-				mFramebuffer);
-		gl11ep.glFramebufferTexture2DOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-				GL11ExtensionPack.GL_COLOR_ATTACHMENT0_OES, GL10.GL_TEXTURE_2D,
-				0, 0);
-
-		gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 		GLHelper.deleteFrameBuffers(mFramebuffer);
 
 		mFramebuffer = 0;
+		
 		GLHelper.checkGLError();
 	}
 

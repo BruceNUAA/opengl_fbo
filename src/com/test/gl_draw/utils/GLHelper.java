@@ -2,10 +2,13 @@ package com.test.gl_draw.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
+import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import android.graphics.Bitmap;
 import android.opengl.ETC1;
@@ -180,8 +183,17 @@ public class GLHelper {
 		return fb[0];
 	}
 
-	public static void deleteFrameBuffers(int... fbo) {
-		GLES20.glDeleteFramebuffers(fbo.length, fbo, 0);
+	public static void deleteFrameBuffers(int fbo) {
+		if (!isFrameBuffer(fbo))
+			return;
+
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo);
+		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
+				GLES20.GL_COLOR_ATTACHMENT0, GL10.GL_TEXTURE_2D, 0, 0);
+
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+		GLES20.glDeleteFramebuffers(1, new int[] { fbo }, 0);
 	}
 
 	public static boolean checkIfContextSupportsNPOT() {
