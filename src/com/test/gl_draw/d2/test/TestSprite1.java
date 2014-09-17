@@ -50,7 +50,7 @@ public class TestSprite1 extends Sprite2D implements GLTimer.OnAnimatListener {
 	private boolean init(GL10 gl) {
 		utils.checkGLError(gl);
 
-		if (!mTexture.Init(mBitmap, false))
+		if (!mTexture.Init(mBitmap))
 			return false;
 
 		float x = -mBitmapW / 2.0f;

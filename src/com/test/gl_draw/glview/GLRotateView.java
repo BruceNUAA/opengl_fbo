@@ -8,7 +8,10 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.test.gl_draw.GLUIView;
+import com.test.gl_draw.KApplication;
+import com.test.gl_draw.gl_base.FrameBuffer;
 import com.test.gl_draw.igl_draw.IGLView;
+import com.test.gl_draw.utils.CustomToast;
 
 public class GLRotateView extends GLTextureView {
 
@@ -131,6 +134,7 @@ public class GLRotateView extends GLTextureView {
 
 		setDrawClipBound(gl);
 
+		FrameBuffer.getInstance().DrawToLayer(gl, Bounds(), 1);
 		SetRotateEven(gl);
 
 		OnDrawBackgound(gl);
@@ -139,6 +143,8 @@ public class GLRotateView extends GLTextureView {
 
 		RestoreRotateEven(gl);
 
+		FrameBuffer.getInstance().Restore(gl);
+		
 		restoreDrawClipBound(gl);
 	}
 
@@ -204,15 +210,11 @@ public class GLRotateView extends GLTextureView {
 
 	@Override
 	public boolean onDown(final float x, final float y) {
-		final boolean sx = true;
 		GLUIView.sMultiWindowView.doUITask(new Runnable() {
 
 			@Override
 			public void run() {
-				String string = Boolean.toString(sx) + "|" + Float.toString(x)
-						+ "-" + Float.toString(y);
-				// Log.e("---", string);
-				// CustomToast.showLong(KApplication.sApplication, string);
+				 CustomToast.showLong(KApplication.sApplication, "HitTest OK");
 
 			}
 		});

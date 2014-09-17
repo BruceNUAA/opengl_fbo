@@ -32,6 +32,8 @@ public class TextureDraw {
 
     private boolean mVisible = true;
 
+    private RectF mTextureVisibleRectF = new RectF();
+
     public void SetColor(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
             throw new RuntimeException("背景颜色个数设置错误！");
@@ -42,14 +44,62 @@ public class TextureDraw {
         }
     }
 
+    public void SetAlpha(float alpha) {
+        alpha = Math.max(0, Math.min(1, alpha));
+
+        int alpha_i = (int) (255 * alpha + 0.5);
+
+        if (mColor == null) {
+            mColor = new int[] {
+                    Color.argb(alpha_i, 255, 255, 255)
+            };
+        } else {
+            for (int i = 0; i < mColor.length; i++) {
+                int r = Color.red(mColor[i]);
+                int b = Color.blue(mColor[i]);
+                int g = Color.green(mColor[i]);
+                mColor[i] = Color.argb(alpha_i, r, g, b);
+            }
+        }
+
+        refreshColor();
+    }
+
     public void SetTexture(Texture texture) {
-        if (texture == null || !texture.isValid())
+        SetTexture(texture, null);
+
+    }
+
+    public void SetTexture(Texture texture, RectF visible_rect) {
+        if (texture == null || !texture.isValid() || texture == mTexture)
             return;
+
+        if (visible_rect == null || visible_rect.isEmpty()) {
+            int[] size = texture.getTextSize();
+
+            mTextureVisibleRectF.set(0, 0, size[0], size[1]);
+        }
 
         if (mTexture == null)
             mTexture = new Texture();
 
         mTexture.Init(texture);
+        
+        //
+        int[] size = mTexture.getTextSize();
+        int[] real_size = mTexture.getRealSize();
+        
+        float delt_x = (real_size[0] - size[0])/2.0f;
+        float delt_y = (real_size[1] - size[1])/2.0f;
+        
+        mTextureVisibleRectF.offset(delt_x, delt_y);
+        
+        mTextureVisibleRectF.set(
+                mTextureVisibleRectF.left/real_size[0],
+                mTextureVisibleRectF.top/real_size[1],
+                mTextureVisibleRectF.right/real_size[0],
+                mTextureVisibleRectF.bottom/real_size[1]);
+        
         refreshTXData();
     }
 
@@ -58,7 +108,7 @@ public class TextureDraw {
             return;
 
         mRenderRect.set(rc);
-        refreshTextureData();
+        refreshVData();
     }
 
     public void SetRenderRect(float... xywh) {
@@ -75,7 +125,7 @@ public class TextureDraw {
 
         mFillMode = mode;
 
-        refreshTextureData();
+        refreshVData();
     }
 
     public void setVisible(boolean visible) {
@@ -90,8 +140,8 @@ public class TextureDraw {
 
         if (mRenderRect.isEmpty() || !mVisible)
             return;
-
-        boolean has_texture = mTexture != null && mTexture.isValid();
+        
+        boolean has_texture = mTexture != null && mTexture.ReloadIfNeed();
 
         boolean has_color = mColorBuffer != null;
 
@@ -99,7 +149,7 @@ public class TextureDraw {
             return;
 
         if (has_texture) {
-            gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
+            mTexture.bind();
             gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
         } else {
             gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
@@ -117,8 +167,7 @@ public class TextureDraw {
 
         //
         if (has_texture) {
-            gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
-
+            mTexture.unBind();
         } else {
             gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
         }
@@ -131,7 +180,7 @@ public class TextureDraw {
     }
 
     //
-    private void refreshTextureData() {
+    private void refreshVData() {
 
         if (mRenderRect.isEmpty())
             return;
@@ -178,7 +227,11 @@ public class TextureDraw {
         if (mTexture == null || !mTexture.isValid())
             return;
 
-        RectF t_r = mTexture.getTextRect();
+        RectF t_r = new RectF(mTexture.getTextRect());
+
+        if (!t_r.intersect(mTextureVisibleRectF))
+            t_r.setEmpty();
+
         float[] f = {
                 //
                 t_r.left, t_r.top,//

@@ -1,10 +1,8 @@
 package com.test.gl_draw.d2.test;
 
-import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.util.Log;
 
-import com.test.gl_draw.d2.FrameBuffer2D;
 import com.test.gl_draw.d2.Sprite2D;
 import com.test.gl_draw.d2.SpriteDataProvider2D;
 import com.test.gl_draw.gl_base.GLTimer;
@@ -15,7 +13,6 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 
 	private GLTimer mTimer;
 
-	private FrameBuffer2D mFrameBuffer = new FrameBuffer2D();
 	private Sprite2D mSpriteFBO = new Sprite2D();
 
 	private SpriteDataProvider2D mSpriteDataProviderFBO = new SpriteDataProvider2D();
@@ -76,8 +73,6 @@ public class TestFrameBuffer2D implements GLTimer.OnAnimatListener {
 
 			mSpriteFBO.setDataProvider(mSpriteDataProviderFBO);
 
-			mFrameBuffer.setSurfaceWidth((int) mRenderRectF.width(),
-					(int) mRenderRectF.height());
 		}
 
 		StartTimer();

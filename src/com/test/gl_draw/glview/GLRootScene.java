@@ -109,7 +109,7 @@ public class GLRootScene implements IScene {
 			b = BitmapFactory.decodeResource(cx.getResources(),
 					R.drawable.port_img);
 			texture = new Texture();
-			texture.Init(b, false);
+			texture.Init(b);
 			b.recycle();
 
 			GLRotateView view6 = new GLRotateView();
@@ -152,7 +152,7 @@ public class GLRootScene implements IScene {
 			b = BitmapFactory.decodeResource(cx.getResources(), R.drawable.img);
 			GLTextureView view5 = new GLTextureView();
 			texture = new Texture();
-			texture.Init(b, false);
+			texture.Init(b);
 			b.recycle();
 			view5.SetTexture(texture);
 			view5.setOnTouchLisener(touch);
@@ -166,7 +166,7 @@ public class GLRootScene implements IScene {
 					R.drawable.port_img);
 			texture = new Texture();
 			// texture2.Init("HELLO", false, 50);
-			texture.Init(b, false);
+			texture.Init(b);
 			b.recycle();
 			GLRotateView view6 = new GLRotateView();
 			view6.setRotateOrigin(450, 300);

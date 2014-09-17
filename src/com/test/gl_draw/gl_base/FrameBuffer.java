@@ -2,103 +2,149 @@
 package com.test.gl_draw.gl_base;
 
 import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import junit.framework.Assert;
+import android.graphics.RectF;
+import android.opengl.GLES20;
 
-import com.test.gl_draw.igl_draw.ISprite;
+import com.test.gl_draw.glview.GLView;
+import com.test.gl_draw.glview.TextureDraw;
 import com.test.gl_draw.utils.GLHelper;
 
-public abstract class FrameBuffer {
-    protected Texture mTexture = new Texture();
+public class FrameBuffer {
 
-    private int[] mDesireSize = {
-            0, 0
-    };
-    private int[] mRealSize = {
-            0, 0
-    };
+    private TextureDraw mTextureDraw = new TextureDraw();
 
-    private int[] mFramebuffer = {
-            0
-    };
+    private int mFramebuffer;
 
-    private ISprite[] mISprites;
+    private float[] mPVMatrix = new float[32];
 
-    public void setSurfaceWidth(int w, int h) {
+    private RectF mRectF = new RectF();
 
-        mDesireSize[0] = w;
-        mDesireSize[1] = h;
+    private float mAlpha = 1;
 
-        mRealSize[0] = w;
-        mRealSize[1] = h;
+    private static FrameBuffer sFrameBuffer = null;
+
+    private int mFrameCallStackCound = 0;
+
+    public static FrameBuffer getInstance() {
+        if (sFrameBuffer == null) {
+            sFrameBuffer = new FrameBuffer();
+        }
+
+        return sFrameBuffer;
     }
 
-    public Texture getTexture() {
-        return mTexture;
+    private FrameBuffer() {
+
     }
 
-    public void setRenderSprite(ISprite... sprites) {
-        mISprites = sprites;
-    }
+    public void SetUpScene(GL10 gl) {
+        float w = GLView.sRenderWidth;
+        float h = GLView.sRenderHeight;
 
-    public float getWidth() {
-        return mRealSize[0];
-    }
-
-    public float getHeight() {
-        return mRealSize[1];
-    }
-
-    public float[] getOrigin() {
-        return new float[] {
-                mRealSize[0] / 2.0f, mRealSize[1] / 2.0f
-        };
-    }
-
-    public void MakeFBOTexture() {
-        GL10 gl = GLRender.GL();
-        if (gl == null)
-            return;
-        
+        gl.glMatrixMode(GL10.GL_PROJECTION);
+        gl.glLoadIdentity();
+        gl.glOrthof(0, w, 0, h, 1, -1);
+        gl.glMatrixMode(GL10.GL_MODELVIEW);
         GLHelper.checkGLError();
-        if (!GLHelper.checkIfContextSupportsNPOT()) {
-            mRealSize[0] = (int) GLHelper.cellPowerOf2(mDesireSize[0]);
-            mRealSize[1] = (int) GLHelper.cellPowerOf2(mDesireSize[1]);
-        }
+    }
 
-        Assert.assertTrue(GLHelper.checkIfContextSupportsFrameBufferObject());
-        GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
+    public void DrawToLayer(GL10 gl, RectF rc, float alpha) {
+        mFrameCallStackCound++;
 
-        if (!mTexture.Init(mDesireSize[0], mDesireSize[1], true)) {
+        if (rc.isEmpty() || mFrameCallStackCound != 1) {
             return;
         }
 
-        mFramebuffer[0] = GLHelper.createFrameBuffer(mRealSize[0],
-                mRealSize[1], mTexture.getTexture());
+        BackMatrix();
 
-        gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-                mFramebuffer[0]);
+        mAlpha = alpha;
+
+        do {
+            if (mRectF.width() == rc.width() && mRectF.height() == rc.height() &&
+                    mTextureDraw.getTexture() != null &&
+                    mTextureDraw.getTexture().isValid() &&
+                    GLHelper.isFrameBuffer(mFramebuffer)) {
+                break;
+            }
+
+            Destory(gl);
+            mRectF.set(rc);
+
+            mTextureDraw
+                    .SetRenderRect(new RectF(0, 0, GLView.sRenderWidth, GLView.sRenderHeight));
+
+            Texture texture = mTextureDraw.getTexture();
+            if (texture == null) {
+                texture = new Texture();
+            }
+
+            if (!texture.Init((int) rc.width(), (int) rc.height())) {
+                return;
+            } else {
+                mTextureDraw.SetTexture(texture);
+            }
+
+            Assert.assertTrue(GLHelper.checkIfContextSupportsFrameBufferObject());
+
+            int[] size = texture.getRealSize();
+
+            mFramebuffer = GLHelper.createFrameBuffer(size[0],
+                    size[1], texture.getTexture());
+        } while (false);
+
         SetUpScene(gl);
 
-        for (ISprite i : mISprites) {
-            i.onDrawFrame(gl);
-        }
+        mTextureDraw.SetAlpha(mAlpha);
 
-        gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
+
+        gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+        GLHelper.checkGLError();
+    }
+
+    public void Restore(GL10 gl) {
+        mFrameCallStackCound--;
+
+        if (mRectF.isEmpty() || mFrameCallStackCound != 0)
+            return;
+
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+        RestoreMatrix(gl);
+
+        gl.glLoadIdentity();
+        mTextureDraw.Draw(gl);
 
         GLHelper.checkGLError();
     }
 
-    public void Destory() {
-        GL10 gl = GLRender.GL();
-        if (gl == null)
+    private void BackMatrix() {
+        GLES20.glGetFloatv(GL11.GL_PROJECTION_MATRIX, mPVMatrix, 0);
+        GLES20.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mPVMatrix, 16);
+    }
+
+    private void RestoreMatrix(GL10 gl) {
+        gl.glViewport(0, 0, GLView.sRenderWidth, GLView.sRenderHeight);
+
+        gl.glMatrixMode(GL10.GL_PROJECTION);
+        gl.glLoadMatrixf(mPVMatrix, 0);
+
+        gl.glMatrixMode(GL10.GL_MODELVIEW);
+        gl.glLoadMatrixf(mPVMatrix, 16);
+    }
+
+    public void Destory(GL10 gl) {
+        if (!GLHelper.isFrameBuffer(mFramebuffer))
             return;
 
         GL11ExtensionPack gl11ep = (GL11ExtensionPack) gl;
 
         gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-                mFramebuffer[0]);
+                mFramebuffer);
         gl11ep.glFramebufferTexture2DOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
                 GL11ExtensionPack.GL_COLOR_ATTACHMENT0_OES, GL10.GL_TEXTURE_2D,
                 0, 0);
@@ -106,13 +152,7 @@ public abstract class FrameBuffer {
         gl11ep.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
         GLHelper.deleteFrameBuffers(mFramebuffer);
 
-        mFramebuffer[0] = 0;
-        mISprites = null;
+        mFramebuffer = 0;
         GLHelper.checkGLError();
-
-        // 暂时置空
-        mTexture = null;
     }
-
-    public abstract void SetUpScene(GL10 gl);
 }

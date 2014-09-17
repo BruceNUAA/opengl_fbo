@@ -7,56 +7,98 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.opengl.GLES20;
 import android.text.TextPaint;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.test.gl_draw.utils.GLHelper;
 
-public class Texture {
+public class Texture implements Cloneable {
+
+    private enum TextureType {
+        BITMAP,
+        EMPTY_RECT,
+    }
+
+    private TextureType mType = TextureType.BITMAP;
+
+    private Bitmap mBitmap;
+
+    private String mStringTxt = null;
 
     private RectF mTextRectF = new RectF();
-    private int[] mTexture = {
-        0
-    };
+    private int mTexture = 0;
+
     private int mTextureOriginW = 0;
     private int mTextureOriginH = 0;
 
     private int[] mRealSize = {
             0, 0
     };
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
+    
+    private int sMaxTryCound = 3;
+    
+    private int mTryCount = sMaxTryCound;
+    
+    public Texture() {
+        
+    }
+    
+    public Texture(Texture t) {
+        Init(t);
     }
 
     public void Init(Texture texture) {
         UnLoad();
 
+        mType = texture.mType;
+        mBitmap = texture.mBitmap;
+
+        mTryCount = sMaxTryCound;
+        
+        mStringTxt = texture.mStringTxt;
+
         mTextRectF.set(texture.mTextRectF);
-        mTexture[0] = texture.mTexture[0];
+        mTexture = texture.mTexture;
+
         mTextureOriginW = texture.mTextureOriginW;
         mTextureOriginH = texture.mTextureOriginH;
+
+        mRealSize = texture.mRealSize.clone();
     }
 
     public boolean Init(String text, boolean force, float text_size) {
-        if (text == null || text.isEmpty())
+        return Init(text, force, text_size, 0);
+    }
+
+    public boolean Init(String text, boolean force, float text_size, float max_width) {
+        if (text == null || text.isEmpty() || text.equals(mStringTxt))
             return false;
 
-        Bitmap bitmap = textToString(text, text_size);
+        mStringTxt = new String(text);
+
+        Bitmap bitmap = textToString(mStringTxt, max_width, text_size);
+
         if (bitmap == null)
             return false;
 
-        return Init(bitmap, force);
+        return Init(bitmap);
     }
 
-    public boolean Init(Bitmap b, boolean force) {
+    public boolean Init(Bitmap b) {
         if (b == null) {
             return false;
         }
 
-        if (!force && GLHelper.isTexture(mTexture[0]))
+        if (isValid() && b.sameAs(mBitmap))
             return true;
 
+        mType = TextureType.BITMAP;
+        mBitmap = b;
+
+        mTryCount = sMaxTryCound;
+        
         UnLoad();
 
         mTextureOriginW = b.getWidth();
@@ -73,8 +115,10 @@ public class Texture {
         mRealSize[0] = new_w;
         mRealSize[1] = new_h;
 
-        float map_w = b.getWidth() / (float) new_w;
-        float map_h = b.getHeight() / (float) new_h;
+        // ********* Note: ************
+        // MASS算法只针对设置的颜色格式，对透明图暂时边框减1来处理
+        float map_w = (mTextureOriginW - (b.hasAlpha() ? 1 : 0)) / (float) new_w;
+        float map_h = (mTextureOriginH - (b.hasAlpha() ? 1 : 0)) / (float) new_h;
         float map_x = (1 - map_w) / 2;
         float map_y = (1 - map_h) / 2;
 
@@ -83,20 +127,22 @@ public class Texture {
         if (new_w != mTextureOriginW || new_h != mTextureOriginH) {
             Bitmap resizedBitmap = resizeBitmap(b, new_w, new_h);
 
-            mTexture[0] = GLHelper.loadTexture(resizedBitmap);
+            mTexture = GLHelper.loadTexture(resizedBitmap);
 
             resizedBitmap.recycle();
         } else {
-            mTexture[0] = GLHelper.loadTexture(b);
+            mTexture = GLHelper.loadTexture(b);
         }
 
         GLHelper.checkGLError();
-        return GLHelper.isTexture(mTexture[0]);
+        return GLHelper.isTexture(mTexture);
     }
 
-    public boolean Init(int w, int h, boolean force) {
-        if (!force && GLHelper.isTexture(mTexture[0]))
+    public boolean Init(int w, int h) {
+        if (mTextureOriginW == w && mTextureOriginH == h && isValid())
             return true;
+
+        mType = TextureType.EMPTY_RECT;
 
         UnLoad();
 
@@ -121,20 +167,24 @@ public class Texture {
 
         mTextRectF.set(map_x, map_y, map_x + map_w, map_y + map_h);
 
-        mTexture[0] = GLHelper.createTargetTexture(new_w, new_h);
-        return GLHelper.isTexture(mTexture[0]);
+        mTexture = GLHelper.createTargetTexture(new_w, new_h);
+        return GLHelper.isTexture(mTexture);
     }
 
     public boolean isValid() {
-        return GLHelper.isTexture(mTexture[0]);
+        if (mType == TextureType.BITMAP && mBitmap == null || mTextureOriginW == 0
+                || mTextureOriginH == 0) {
+            return false;
+        }
+        return GLHelper.isTexture(mTexture);
     }
 
     public void UnLoad() {
         GLHelper.checkEGLContextOK();
 
-        if (mTexture[0] != 0 && GLHelper.isTexture(mTexture[0])) {
+        if (mTexture != 0 && GLHelper.isTexture(mTexture)) {
             GLHelper.deleteTargetTexture(mTexture);
-            mTexture[0] = 0;
+            mTexture = 0;
         }
     }
 
@@ -142,18 +192,52 @@ public class Texture {
         return mTextRectF;
     }
 
-    public int getTexture() {
-        return mTexture[0];
-    }
-
     public int[] getTextSize() {
         return new int[] {
                 mTextureOriginW, mTextureOriginH
         };
     }
-    
+
     public int[] getRealSize() {
         return mRealSize;
+    }
+
+    public int getTexture() {
+        return mTexture;
+    }
+
+    public boolean ReloadIfNeed() {
+     
+        if (!isValid() && mTryCount -- > 0) {
+            if (mType == TextureType.BITMAP && mBitmap != null) {
+                Init(mBitmap);
+            } else {
+                Init(mTextureOriginW, mTextureOriginH);
+            }
+            
+            Log.e("Texture", "try load - error:" + mTryCount + " | " + isValid());
+        }
+        
+        return isValid();
+    }
+
+    public boolean bind() {
+
+        if (!ReloadIfNeed()) {
+            return false;
+        }
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
+        
+        GLHelper.checkGLError();
+        return true;
+    }
+    
+    public void unBind() {
+        if (isValid())
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        
+        GLHelper.checkGLError();
     }
 
     //
@@ -183,17 +267,24 @@ public class Texture {
         return resized_b;
     }
 
-    private Bitmap textToString(String text, float text_size) {
+    private Bitmap textToString(String text, float max_width, float text_size) {
         Bitmap bitmap = null;
         try {
             TextPaint textPaint = new TextPaint();
             textPaint.setColor(Color.WHITE);
             textPaint.setAntiAlias(true);
-            textPaint.setTextSize(text_size);
+            textPaint.setTextSize(text_size);// 设置字体大小
 
+            String new_text = text;
+
+            if (max_width > 0) {
+                new_text = TextUtils.ellipsize(text, textPaint, max_width,
+                        TextUtils.TruncateAt.END).toString();
+            }
+            new_text = text;
             Rect text_rect = new Rect();
 
-            textPaint.getTextBounds(text, 0, text.length(), text_rect);
+            textPaint.getTextBounds(new_text, 0, new_text.length(), text_rect);
             if (text_rect.isEmpty())
                 return null;
 
@@ -201,12 +292,10 @@ public class Texture {
                     Config.ARGB_8888);
 
             Canvas c = new Canvas(bitmap);
-            c.drawText(text, -text_rect.left, -text_rect.top, textPaint);
-
+            c.drawText(new_text, -text_rect.left, -text_rect.top, textPaint);
         } catch (Exception e) {
-
+        } catch (Error e) {
         }
-
         return bitmap;
 
     }

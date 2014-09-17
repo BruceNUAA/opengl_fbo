@@ -57,7 +57,7 @@ public class TabThumbManager {
 			Bitmap shadow = BitmapFactory.decodeResource(rs,
 					R.drawable.muti_tab_shadow);
 
-			mShadowTexture.Init(shadow, true);
+			mShadowTexture.Init(shadow);
 		}
 		return mShadowTexture;
 	}

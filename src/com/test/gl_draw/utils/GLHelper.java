@@ -1,6 +1,13 @@
 
 package com.test.gl_draw.utils;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import javax.microedition.khronos.egl.EGL10;
+import javax.microedition.khronos.egl.EGLContext;
+import javax.microedition.khronos.opengles.GL11;
+
 import android.graphics.Bitmap;
 import android.opengl.ETC1;
 import android.opengl.ETC1Util;
@@ -9,13 +16,7 @@ import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.opengles.GL11;
-import javax.microedition.khronos.opengles.GL11ExtensionPack;
+import com.example.gl_fbo.BuildConfig;
 
 public class GLHelper {
 
@@ -36,12 +37,18 @@ public class GLHelper {
     }
 
     public static void checkEGLContextOK() {
+        if (!BuildConfig.DEBUG)
+            return;
+
         if (!isEGLContextOK()) {
             throw new RuntimeException("Opengl context is not created !");
         }
     }
 
     public static void checkGLError() {
+        if (!BuildConfig.DEBUG)
+            return;
+
         int error = GLES20.glGetError();
         if (error != GLES20.GL_NO_ERROR) {
             throw new RuntimeException("GLError 0x"
@@ -50,7 +57,11 @@ public class GLHelper {
     }
 
     public static boolean isTexture(int texture) {
-        return GLES20.glIsTexture(texture);
+        return texture != 0 && GLES20.glIsTexture(texture);
+    }
+
+    public static boolean isFrameBuffer(int framebuffer) {
+        return framebuffer != 0 && GLES20.glIsFramebuffer(framebuffer);
     }
 
     public static int getTextureMaxSize() {
@@ -105,11 +116,12 @@ public class GLHelper {
         }
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-
+        checkGLError();
         return textures[0];
     }
 
     public static int createTargetTexture(int width, int height) {
+        checkGLError();
         int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
 
@@ -130,52 +142,48 @@ public class GLHelper {
                 GLES20.GL_REPEAT);
         GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
                 GLES20.GL_REPEAT);
+        checkGLError();
         return textures[0];
     }
 
-    public static void deleteTargetTexture(int[] texture) {
+    public static void deleteTargetTexture(int... texture) {
         GLES20.glDeleteTextures(texture.length, texture, 0);
     }
 
     public static int createFrameBuffer(int width, int height,
             int targetTextureId) {
-        int framebuffer;
-        int[] framebuffers = new int[1];
-        GLES20.glGenFramebuffers(1, framebuffers, 0);
-        framebuffer = framebuffers[0];
-        GLES20.glBindFramebuffer(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-                framebuffer);
+        int[] fb = new int[1];
+        int[] depthRb = new int[1];
+        
+        // generate
+        GLES20.glGenFramebuffers(1, fb, 0);
+        GLES20.glGenRenderbuffers(1, depthRb, 0);
 
-        int depthbuffer;
-        int[] renderbuffers = new int[1];
-        GLES20.glGenRenderbuffers(1, renderbuffers, 0);
-        depthbuffer = renderbuffers[0];
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fb[0]);
 
-        GLES20.glBindRenderbuffer(GL11ExtensionPack.GL_RENDERBUFFER_OES,
-                depthbuffer);
-        GLES20.glRenderbufferStorage(GL11ExtensionPack.GL_RENDERBUFFER_OES,
-                GL11ExtensionPack.GL_DEPTH_COMPONENT16, width, height);
-        GLES20.glFramebufferRenderbuffer(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-                GL11ExtensionPack.GL_DEPTH_ATTACHMENT_OES,
-                GL11ExtensionPack.GL_RENDERBUFFER_OES, depthbuffer);
+        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, depthRb[0]);
 
-        GLES20.glFramebufferTexture2D(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
-                GL11ExtensionPack.GL_COLOR_ATTACHMENT0_OES,
+        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER, GLES20.GL_DEPTH_COMPONENT16, width,
+                height);
+
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
+                GLES20.GL_COLOR_ATTACHMENT0,
                 GLES20.GL_TEXTURE_2D, targetTextureId, 0);
+
         int status = GLES20
-                .glCheckFramebufferStatus(GL11ExtensionPack.GL_FRAMEBUFFER_OES);
-        if (status != GL11ExtensionPack.GL_FRAMEBUFFER_COMPLETE_OES) {
+                .glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
+
+        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Framebuffer is not complete: "
                     + Integer.toHexString(status));
         }
 
-        GLES20.glBindFramebuffer(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
-        return framebuffer;
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+        GLHelper.checkGLError();
+        return fb[0];
     }
 
-    public static void deleteFrameBuffers(int[] fbo) {
-
-        checkGLError();
+    public static void deleteFrameBuffers(int... fbo) {
         GLES20.glDeleteFramebuffers(fbo.length, fbo, 0);
     }
 
