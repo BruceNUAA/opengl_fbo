@@ -6,6 +6,7 @@ import javax.microedition.khronos.opengles.GL11;
 import android.graphics.RectF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 
 import com.test.gl_draw.GLUIView;
 import com.test.gl_draw.KApplication;
@@ -134,7 +135,8 @@ public class GLRotateView extends GLTextureView {
 
 		setDrawClipBound(gl);
 
-		FrameBuffer.getInstance().DrawToLayer(gl, Bounds(), 1);
+		FrameBuffer.getInstance().DrawToLayer(gl, 1);
+		
 		SetRotateEven(gl);
 
 		OnDrawBackgound(gl);
@@ -144,16 +146,16 @@ public class GLRotateView extends GLTextureView {
 		RestoreRotateEven(gl);
 
 		FrameBuffer.getInstance().Restore(gl);
-		
+
 		restoreDrawClipBound(gl);
 	}
 
 	public boolean isPtInRegin(float x, float y) {
 		return HitTestPoint(x, y);
 	}
-	
+
 	private boolean HitTestPoint(float x, float y) {
-		float[] pt_v = {x,  y };
+		float[] pt_v = { x, y };
 		PtInRender(pt_v);
 
 		RectF rc = Bounds();
@@ -167,8 +169,7 @@ public class GLRotateView extends GLTextureView {
 		};
 
 		for (int i = 0; i < points.length; i++) {
-			Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
-					points[i], 0);
+			Matrix.multiplyMV(points[i], 0, mGLMatrix, 0, points[i], 0);
 		}
 
 		return Hittest(pt_v, points);
@@ -214,7 +215,9 @@ public class GLRotateView extends GLTextureView {
 
 			@Override
 			public void run() {
-				 CustomToast.showLong(KApplication.sApplication, "HitTest OK");
+				long current = SystemClock.uptimeMillis()%1000;
+				
+				CustomToast.showLong(KApplication.sApplication, "HitTest OK--" + current);
 
 			}
 		});
