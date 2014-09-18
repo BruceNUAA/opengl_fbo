@@ -5,14 +5,10 @@ import javax.microedition.khronos.opengles.GL11;
 
 import android.graphics.RectF;
 import android.opengl.GLES20;
-import android.opengl.Matrix;
-import android.os.SystemClock;
 
-import com.test.gl_draw.GLUIView;
-import com.test.gl_draw.KApplication;
 import com.test.gl_draw.gl_base.FrameBuffer;
+import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.igl_draw.IGLView;
-import com.test.gl_draw.utils.CustomToast;
 
 public class GLRotateView extends GLTextureView {
 
@@ -79,7 +75,7 @@ public class GLRotateView extends GLTextureView {
 
 	@Override
 	public boolean HitTest(final float x, final float y) {
-		return HitTestPoint(x, y);
+		return HitTestPoint(x, y, Bounds());
 	}
 
 	public void SetRotateEven(GL10 gl) {
@@ -114,29 +110,27 @@ public class GLRotateView extends GLTextureView {
 	public void setDrawClipBound(GL10 gl) {
 		gl.glPushMatrix();
 
-		gl.glEnable(GL10.GL_SCISSOR_TEST);
 		if (Parent() == null)
 			return;
 
 		RectF r = Parent().ClipBoundForChildren();
 
-		gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
-				(int) r.width(), (int) r.height());
+		GLClipManager.getInstance().ClipRect(r);
 	}
 
 	public void restoreDrawClipBound(GL10 gl) {
-		gl.glDisable(GL10.GL_SCISSOR_TEST);
+		GLClipManager.getInstance().DisableClip();
 		gl.glPopMatrix();
 	}
 
 	// 绘制
 	@Override
 	public void Draw(GL10 gl) {
-
-		setDrawClipBound(gl);
-
+		
 		FrameBuffer.getInstance().DrawToLayer(gl, 1);
 		
+		setDrawClipBound(gl);
+
 		SetRotateEven(gl);
 
 		OnDrawBackgound(gl);
@@ -145,20 +139,18 @@ public class GLRotateView extends GLTextureView {
 
 		RestoreRotateEven(gl);
 
-		FrameBuffer.getInstance().Restore(gl);
-
 		restoreDrawClipBound(gl);
+		
+		FrameBuffer.getInstance().Restore(gl);
 	}
 
-	public boolean isPtInRegin(float x, float y) {
-		return HitTestPoint(x, y);
+	public boolean isPtInRegin(float x, float y, RectF rc) {
+		return HitTestPoint(x, y, rc);
 	}
 
-	private boolean HitTestPoint(float x, float y) {
+	private boolean HitTestPoint(float x, float y, RectF rc) {
 		float[] pt_v = { x, y };
 		PtInRender(pt_v);
-
-		RectF rc = Bounds();
 
 		float[][] points = {
 				//
@@ -169,7 +161,8 @@ public class GLRotateView extends GLTextureView {
 		};
 
 		for (int i = 0; i < points.length; i++) {
-			Matrix.multiplyMV(points[i], 0, mGLMatrix, 0, points[i], 0);
+			android.opengl.Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
+					points[i], 0);
 		}
 
 		return Hittest(pt_v, points);
@@ -207,20 +200,5 @@ public class GLRotateView extends GLTextureView {
 		double y = point[0] * sin + point[1] * cos;
 
 		return x >= 0 && x <= w && y >= -h && y <= 0;
-	}
-
-	@Override
-	public boolean onDown(final float x, final float y) {
-		GLUIView.sMultiWindowView.doUITask(new Runnable() {
-
-			@Override
-			public void run() {
-				long current = SystemClock.uptimeMillis()%1000;
-				
-				CustomToast.showLong(KApplication.sApplication, "HitTest OK--" + current);
-
-			}
-		});
-		return true;
 	}
 }

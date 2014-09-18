@@ -2,13 +2,11 @@ package com.test.gl_draw.utils;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
-import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import android.graphics.Bitmap;
 import android.opengl.ETC1;
@@ -151,8 +149,9 @@ public class GLHelper {
 	public static void deleteTargetTexture(int... texture) {
 		GLES20.glDeleteTextures(texture.length, texture, 0);
 	}
-
+	
 	public static int createFrameBuffer(int[] size, int targetTextureId) {
+	    
 		int[] fb = new int[1];
 		int[] depthRb = new int[1];
 

@@ -11,8 +11,9 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.igl_draw.IScene;
+import com.test.gl_draw.igl_draw.ITouchEvent;
+import com.test.gl_draw.utils.GLHelper;
 
 public class GLRender implements GLSurfaceView.Renderer {
 
@@ -112,6 +113,7 @@ public class GLRender implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        mGl = gl;
         sRender = this;
         mMainScene.onSurfaceCreated(gl);
  
@@ -122,11 +124,14 @@ public class GLRender implements GLSurfaceView.Renderer {
                 mIRenderMsg.onSurfaceCreated();
             }
         });
+        
+        GLHelper.checkGLError();
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, final int w, final int h) {
         mGl = gl;
+       
         mMainScene.onSurfaceChanged(gl, w, h);
 
         mMainUIHandler.post(new Runnable() {
@@ -136,6 +141,8 @@ public class GLRender implements GLSurfaceView.Renderer {
                 mIRenderMsg.onSurfaceChanged(w, h);
             }
         });
+        
+        GLHelper.checkGLError();
     }
 
     @Override
@@ -144,6 +151,8 @@ public class GLRender implements GLSurfaceView.Renderer {
             iframe.OnFrame(gl);
         
         mMainScene.onDrawFrame(gl);
+        
+        GLHelper.checkGLError();
     }
 
     public void destory() {

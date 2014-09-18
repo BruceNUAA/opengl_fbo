@@ -1,3 +1,4 @@
+
 package com.test.gl_draw.glview;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -9,73 +10,73 @@ import android.graphics.RectF;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.KApplication;
+import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
-import com.test.gl_draw.utils.DLog;
 import com.test.gl_draw.utils.GLHelper;
 
 public class GLRootScene implements IScene {
-	private GLView mRootView = new GLView();
+    private GLView mRootView = new GLView();
 
-	@Override
-	public void onSurfaceCreated(GL10 gl) {
-		GLHelper.checkGLError();
-	}
+    @Override
+    public void onSurfaceCreated(GL10 gl) {
+        GLHelper.checkGLError();
+    }
 
-	@Override
-	public void onSurfaceChanged(GL10 gl, int w, int h) {
-		GLView.sRenderWidth = w;
-		GLView.sRenderHeight = h;
-		mRootView.SetBounds(new RectF(0, 0, w, h));
+    @Override
+    public void onSurfaceChanged(GL10 gl, int w, int h) {
+        GLView.sRenderWidth = w;
+        GLView.sRenderHeight = h;
+        GLClipManager.getInstance().setScreenSize(false, 0, 0, w, h);
+        mRootView.SetBounds(new RectF(0, 0, w, h));
 
-		gl.glViewport(0, 0, w, h);
-		gl.glMatrixMode(GL10.GL_PROJECTION);
-		gl.glLoadIdentity();
+        gl.glViewport(0, 0, w, h);
+        gl.glMatrixMode(GL10.GL_PROJECTION);
+        gl.glLoadIdentity();
 
-		gl.glOrthof(0, w, h, 0, 1, -1);
-		gl.glMatrixMode(GL10.GL_MODELVIEW);
-		GLHelper.checkGLError();
-		// *** 启动该标记，在三星手机上会花屏 ****
-		gl.glEnable(GL10.GL_BLEND);
-		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-		// **********************************
-		gl.glShadeModel(GL10.GL_SMOOTH);
-		gl.glEnable(GL10.GL_TEXTURE_2D);
-		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-		gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
+        gl.glOrthof(0, w, h, 0, 1, -1);
+        gl.glMatrixMode(GL10.GL_MODELVIEW);
+        GLHelper.checkGLError();
+        
+        gl.glEnable(GL10.GL_BLEND);
+        gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
+        // **********************************
 
-		GLHelper.checkGLError();
-		
-		test1();
-	}
+        gl.glEnable(GL10.GL_TEXTURE_2D);
+        gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+        gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 
-	@Override
-	public void onDrawFrame(GL10 gl) {
-		gl.glLoadIdentity();
-		gl.glClearColor(0, 0, 0, 0);
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+        GLHelper.checkGLError();
+        
+        test1();
+    }
 
-		mRootView.Draw(gl);
-		GLHelper.checkGLError();
-	}
+    @Override
+    public void onDrawFrame(GL10 gl) {
+        gl.glLoadIdentity();
+        gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
-	@Override
-	public void onDestory() {
-		mRootView.Detach();
-	}
+        mRootView.Draw(gl);
+        GLHelper.checkGLError();
+    }
 
-	@Override
-	public ITouchEvent getEventHandle() {
-		return mRootView;
-	}
+    @Override
+    public void onDestory() {
+        mRootView.Detach();
+    }
 
-	public GLView rootview() {
-		return mRootView;
-	}
+    @Override
+    public ITouchEvent getEventHandle() {
+        return mRootView;
+    }
 
+    public GLView rootview() {
+        return mRootView;
+    }
+    
 	private void test() {
 		GLView view = new GLTestView();
 		view.SetBackgound(0x5fffffff);
@@ -122,7 +123,7 @@ public class GLRootScene implements IScene {
 			view6.SetBounds(bF);
 
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
-			view6.SetBackgound(0x2fffffff);
+			view6.SetBackgound(0xffffffff);
 			view.AddView(view6);
 		}
 	}

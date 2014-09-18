@@ -13,8 +13,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.test.gl_draw.utils.GLHelper;
+import com.test.gl_draw.utils.NonThreadSafe;
 
-public class Texture implements Cloneable {
+public class Texture extends NonThreadSafe implements Cloneable {
 
     private enum TextureType {
         BITMAP,
@@ -50,6 +51,8 @@ public class Texture implements Cloneable {
     }
 
     public void Init(Texture texture) {
+        CheckThread();
+        
         UnLoad();
 
         mType = texture.mType;
@@ -73,9 +76,11 @@ public class Texture implements Cloneable {
     }
 
     public boolean Init(String text, boolean force, float text_size, float max_width) {
+        CheckThread();
+        
         if (text == null || text.isEmpty() || text.equals(mStringTxt))
             return false;
-
+        
         mStringTxt = new String(text);
 
         Bitmap bitmap = textToString(mStringTxt, max_width, text_size);
@@ -87,6 +92,8 @@ public class Texture implements Cloneable {
     }
 
     public boolean Init(Bitmap b) {
+        CheckThread();
+        
         if (b == null) {
             return false;
         }
@@ -139,6 +146,8 @@ public class Texture implements Cloneable {
     }
 
     public boolean Init(int w, int h) {
+        CheckThread();
+        
         if (mTextureOriginW == w && mTextureOriginH == h && isValid())
             return true;
 

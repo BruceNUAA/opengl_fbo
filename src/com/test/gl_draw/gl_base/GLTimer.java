@@ -8,7 +8,9 @@ import android.animation.TimeInterpolator;
 import android.os.SystemClock;
 import android.view.animation.LinearInterpolator;
 
-public class GLTimer implements GLRender.IRenderFrame {
+import com.test.gl_draw.utils.NonThreadSafe;
+
+public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
     public interface OnAnimatListener {
         void OnAnimationStart();
 
@@ -74,6 +76,8 @@ public class GLTimer implements GLRender.IRenderFrame {
     }
 
     public void setInterpolator(TimeInterpolator value) {
+        CheckThread();
+        
         if (value != null) {
             mInterpolator = value;
         } else {
@@ -82,6 +86,8 @@ public class GLTimer implements GLRender.IRenderFrame {
     }
 
     public void start() {
+        CheckThread();
+        
         mIsRunning = true;
         mStartedTime = SystemClock.uptimeMillis();
         mCurrentTime = mStartedTime;
@@ -93,6 +99,8 @@ public class GLTimer implements GLRender.IRenderFrame {
     }
 
     public void stop() {
+        CheckThread();
+        
         GLRender.RequestRender(true);
         
         if (mListener == null)
@@ -106,6 +114,8 @@ public class GLTimer implements GLRender.IRenderFrame {
 
     @Override
     public void OnFrame(GL10 gl) {
+        CheckThread();
+        
         if (!mIsRunning || mListener == null)
             return;
 

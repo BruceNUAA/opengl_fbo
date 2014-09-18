@@ -19,7 +19,9 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.MultisampleConfigChooser;
 import com.test.gl_draw.glview.GLRootScene;
+import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.igl_draw.IGLDispatchEvent;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.utils.ThreadUtils;
@@ -28,7 +30,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         View.OnTouchListener, GestureDetector.OnGestureListener, IGLDispatchEvent {
 
     // static
-    public static GLUIView sMultiWindowView = null;
+    private static GLUIView sMultiWindowView = null;
 
     public static boolean PostRenderEvent(Runnable r) {
         if (sMultiWindowView == null)
@@ -37,6 +39,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         sMultiWindowView.doGLTask(r);
         return true;
     }
+
     //
 
     private GLRender mRender;
@@ -48,42 +51,12 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     public GLUIView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.setOnTouchListener(this);
-        mGestureDector = new GestureDetector(context, this);
-        
-        mRender = new GLRender(this, mRootScene);
 
-        mIGLGestureListener = mRender.getGestrueListener();
+        configureSurface(context);
 
-        setEGLConfigChooser(new EGLConfigChooser() {
-            @Override
-            public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-                int[] attrList = new int[] {
-                        //
-                        EGL10.EGL_SURFACE_TYPE, EGL10.EGL_WINDOW_BIT, //
-                        EGL10.EGL_DEPTH_SIZE, 0, //
-                        EGL10.EGL_BUFFER_SIZE, 0,//
-                        EGL10.EGL_SAMPLE_BUFFERS, 1,//
-                        EGL10.EGL_SAMPLES, 4, //
-                        EGL10.EGL_NONE
-                        //
-                };
+        setOnTouchListener(this);
 
-                EGLConfig[] configOut = new EGLConfig[1];
-                int[] configNumOut = new int[1];
-                egl.eglChooseConfig(display, attrList, configOut, 1,
-                        configNumOut);
-
-                return configOut[0];
-            }
-        });
-
-        setRenderer(mRender);
-        //setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        getHolder().setFormat(PixelFormat.TRANSLUCENT);
-
-        setPreserveEGLContextOnPause(true);
-        setZOrderOnTop(true);
+        postGLViewInitTask();
 
     }
 
@@ -93,6 +66,9 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        if (mIGLGestureListener == null)
+            return false;
+
         boolean hr = mGestureDector.onTouchEvent(event);
         if (event.getAction() == MotionEvent.ACTION_UP) {
             final float x = event.getX();
@@ -280,4 +256,58 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         ThreadUtils.postOnUiThread(r);
     }
 
+    private void configureSurface(Context context) {
+        mGestureDector = new GestureDetector(context, this);
+        mRender = new GLRender(this, mRootScene);
+
+        if (true) {
+            setEGLConfigChooser(new MultisampleConfigChooser());
+        } else {
+            setEGLConfigChooser(new EGLConfigChooser() {
+                @Override
+                public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
+                    
+                    int[] attrList = new int[] {
+                            //
+                            EGL10.EGL_SURFACE_TYPE, EGL10.EGL_WINDOW_BIT, //
+                            EGL10.EGL_DEPTH_SIZE, 0, //
+                            EGL10.EGL_BUFFER_SIZE, 0,//
+                            EGL10.EGL_SAMPLE_BUFFERS, 1,//
+                           EGL10.EGL_SAMPLES, 4, //
+                            EGL10.EGL_NONE
+                            //
+                    };
+
+                    EGLConfig[] configOut = new EGLConfig[1];
+                    int[] configNumOut = new int[1];
+                    egl.eglChooseConfig(display, attrList, configOut, 1,
+                            configNumOut);
+
+                    return configOut[0];
+                }
+            });
+
+        }
+       
+        setRenderer(mRender);
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        getHolder().setFormat(PixelFormat.TRANSLUCENT);
+
+        setPreserveEGLContextOnPause(true);
+        setZOrderOnTop(true);
+    }
+
+    private void postGLViewInitTask() {
+        final GLView rootView = mRootScene.rootview();
+        rootView.detachFromThread();
+
+        Runnable gl_init_task = new Runnable() {
+            public void run() {
+
+                mIGLGestureListener = mRender.getGestrueListener();
+            }
+        };
+
+        mRendeInitEvent.add(gl_init_task);
+    }
 }

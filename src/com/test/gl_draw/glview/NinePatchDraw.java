@@ -97,18 +97,20 @@ public class NinePatchDraw {
 				|| mTexture == null || !mTexture.isValid())
 			return;
 
+		if (!mTexture.bind())
+		    return;
+		
 		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
 
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture.getTexture());
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffer);
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
 
 		gl.glDrawElements(GL10.GL_TRIANGLES, mIdexBuffer.capacity(),
 				GL10.GL_UNSIGNED_BYTE, mIdexBuffer);
 		//
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
-
 		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
+		
+		mTexture.unBind();
 	}
 
 	private void UpdateTexture() {

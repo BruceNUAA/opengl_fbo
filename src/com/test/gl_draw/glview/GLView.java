@@ -4,14 +4,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.graphics.Rect;
 import android.graphics.RectF;
 
+import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.utils.GLHelper;
+import com.test.gl_draw.utils.NonThreadSafe;
 
-public class GLView implements IGLView {
+public class GLView extends NonThreadSafe implements IGLView {
 
 	public static int sID = 0;
 
@@ -100,20 +101,24 @@ public class GLView implements IGLView {
 	// 绘制
 	@Override
 	public void Draw(GL10 gl) {
+	    CheckThread();
+	    
 		if (!visible())
 			return;
-
-		gl.glEnable(GL10.GL_SCISSOR_TEST);
+		
 		RectF r = ClipBound();
+		
+		if (r.isEmpty())
+		    return;
 
-		gl.glScissor((int) r.left, sRenderHeight - (int) r.bottom,
-				(int) Math.max(0, r.width()), (int) Math.max(0, r.height()));
+		GLClipManager.getInstance().ClipRect(r);
+		
 		OnDrawBackgound(gl);
 
 		OnDraw(gl);
 
-		gl.glDisable(GL10.GL_SCISSOR_TEST);
-
+		GLClipManager.getInstance().DisableClip();
+		
 		OnDrawChilds(gl);
 
 		GLHelper.checkGLError();
@@ -307,6 +312,9 @@ public class GLView implements IGLView {
 
 	@Override
 	public void RemoveAllView() {
+	    for(IGLView v : mChildViews) 
+	        v.Detach();
+	    
 		mChildViews.clear();
 	}
 
@@ -319,7 +327,9 @@ public class GLView implements IGLView {
 
 		if (!mChildViews.contains(view))
 			return;
-
+		
+        view.Detach();
+        
 		mChildViews.remove(view);
 	}
 
