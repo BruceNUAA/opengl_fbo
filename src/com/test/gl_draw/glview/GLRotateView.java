@@ -127,7 +127,7 @@ public class GLRotateView extends GLTextureView {
 	@Override
 	public void Draw(GL10 gl) {
 		
-		FrameBuffer.getInstance().DrawToLayer(gl, 1);
+		FrameBuffer.getInstance().DrawToLayer(gl, 0.5f);
 		
 		setDrawClipBound(gl);
 

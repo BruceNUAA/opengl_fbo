@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.test.gl_draw.d2.test.GLMainActivity"
+            android:name="com.test.gl_draw.test.GLMainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

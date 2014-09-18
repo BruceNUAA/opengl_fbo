@@ -6,7 +6,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
+import com.ijinshan.browser.content.widget.multiwindowui.view.GLUIView;
 import com.test.gl_draw.gl_base.GLClipManager;
+import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.utils.GLHelper;
@@ -49,6 +51,7 @@ public class GLView extends NonThreadSafe implements IGLView {
 
 	@Override
 	public void InValidate() {
+		GLRender.RequestRender(true);
 	}
 
 	public TextureDraw getBackgoundDraw() {
