@@ -10,9 +10,9 @@ import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.utils.BufferUtil;
-import com.test.gl_draw.utils.GLHelper;
+import com.test.gl_draw.utils.NonThreadSafe;
 
-public class TextureDraw {
+public class TextureDraw extends NonThreadSafe {
 
     public enum FillMode {
         FitXY, // 根据绘制区域拉申
@@ -34,6 +34,8 @@ public class TextureDraw {
 
     private RectF mTextureVisibleRectF = new RectF();
 
+    private boolean mDestoryTextureWhenDetach = true;
+    
     public void SetColor(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
             throw new RuntimeException("背景颜色个数设置错误！");
@@ -65,15 +67,17 @@ public class TextureDraw {
         refreshColor();
     }
 
-    public void SetTexture(Texture texture) {
-        SetTexture(texture, null);
+    public void SetTexture(Texture texture, boolean destory_texture_when_detach) {
+        SetTexture(texture, null, destory_texture_when_detach);
 
     }
 
-    public void SetTexture(Texture texture, RectF visible_rect) {
+    public void SetTexture(Texture texture, RectF visible_rect, boolean destory_texture_when_detach) {
         if (texture == null || !texture.isValid() || texture == mTexture)
             return;
 
+        mDestoryTextureWhenDetach = destory_texture_when_detach;
+        
         if (visible_rect == null || visible_rect.isEmpty()) {
             int[] size = texture.getTextSize();
 
@@ -101,6 +105,28 @@ public class TextureDraw {
                 mTextureVisibleRectF.bottom/real_size[1]);
         
         refreshTXData();
+    }
+    
+    public void DetachFromView() {
+    	if (mTexture != null && mDestoryTextureWhenDetach) {
+    		mTexture.Destory();
+    		mTexture = null;
+    	}
+    	
+    	if (mVBuffer != null) {
+    		mVBuffer.clear();
+    		mVBuffer = null;
+    	}
+    	
+    	if (mTXCoordBuffer != null) {
+    		mTXCoordBuffer.clear();
+    		mTXCoordBuffer = null;
+    	}
+    	
+    	if (mColorBuffer != null) {
+    		mColorBuffer.clear();
+    		mColorBuffer = null;
+    	}
     }
 
     public void SetRenderRect(RectF rc) {
@@ -137,7 +163,8 @@ public class TextureDraw {
     }
 
     public void Draw(GL10 gl) {
-
+    	CheckThread();
+    	
         if (mRenderRect.isEmpty() || !mVisible)
             return;
         
@@ -176,7 +203,7 @@ public class TextureDraw {
             gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
         }
 
-        GLHelper.checkGLError();
+        CheckThreadError();
     }
 
     //

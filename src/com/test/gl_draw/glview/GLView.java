@@ -6,7 +6,6 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
-import com.ijinshan.browser.content.widget.multiwindowui.view.GLUIView;
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.Texture;
@@ -68,9 +67,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 	}
 
 	@Override
-	public void SetBackgound(Texture texture) {
+	public void SetBackgound(Texture texture, boolean destory_texture_when_detach) {
 		if (texture.isValid()) {
-			mBackgoundDraw.SetTexture(texture);
+			mBackgoundDraw.SetTexture(texture, destory_texture_when_detach);
 			InValidate();
 		}
 	}
@@ -79,6 +78,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 	public void Detach() {
 		for (IGLView v : mChildViews)
 			v.Detach();
+		
+		mBackgoundDraw.DetachFromView();
+		mBackgoundDraw = null;
 	}
 
 	@Override
@@ -124,7 +126,7 @@ public class GLView extends NonThreadSafe implements IGLView {
 		
 		OnDrawChilds(gl);
 
-		GLHelper.checkGLError();
+		CheckThreadError();
 	}
 
 	@Override
@@ -465,6 +467,12 @@ public class GLView extends NonThreadSafe implements IGLView {
 
 		return handled;
 	}
+	
+	@Override
+	public void detachFromThread() {
+        super.detachFromThread();
+        mBackgoundDraw.detachFromThread();
+    }
 
 	@Override
 	public boolean onShowPress(float x, float y) {

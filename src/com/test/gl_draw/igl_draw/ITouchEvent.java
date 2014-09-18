@@ -1,6 +1,8 @@
 package com.test.gl_draw.igl_draw;
 
+
 public interface ITouchEvent {
+	
 	boolean onDown(float x, float y);
 
 	boolean onShowPress(float x, float y);

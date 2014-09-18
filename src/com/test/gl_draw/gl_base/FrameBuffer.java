@@ -70,7 +70,7 @@ public class FrameBuffer extends NonThreadSafe {
             if (!texture.Init((int) mRectF.width(), (int) mRectF.height())) {
                 return;
             } else {
-                mTextureDraw.SetTexture(texture);
+                mTextureDraw.SetTexture(texture, false);
             }
 
             mFramebuffer = GLHelper.createFrameBuffer(texture.getRealSize(),
@@ -84,7 +84,8 @@ public class FrameBuffer extends NonThreadSafe {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer);
 
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-        GLHelper.checkGLError();
+        
+        CheckThreadError();
     }
 
     public void Restore(GL10 gl) {
@@ -99,7 +100,7 @@ public class FrameBuffer extends NonThreadSafe {
 
         RestoreScene(gl);
 
-        GLHelper.checkGLError();
+        CheckThreadError();
     }
 
     public void Destory(GL10 gl) {
@@ -109,7 +110,7 @@ public class FrameBuffer extends NonThreadSafe {
 
         mFramebuffer = 0;
 
-        GLHelper.checkGLError();
+        CheckThreadError();
     }
 
     private void SetUpScene(GL10 gl) {
@@ -138,7 +139,7 @@ public class FrameBuffer extends NonThreadSafe {
         gl.glEnable(GL10.GL_BLEND);
         gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
         
-        GLHelper.checkGLError();
+        CheckThreadError();
     }
 
     private void RestoreScene(GL10 gl) {

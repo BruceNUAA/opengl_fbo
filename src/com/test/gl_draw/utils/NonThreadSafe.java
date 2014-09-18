@@ -25,6 +25,13 @@ public class NonThreadSafe {
             throw new RuntimeException("Call on invalided thread!");
         }
     }
+    
+    public void CheckThreadError() {
+    	if (!BuildConfig.DEBUG)
+    		return;
+    	
+    	GLHelper.checkGLError();
+    }
 
     public void detachFromThread() {
         mThread = null;

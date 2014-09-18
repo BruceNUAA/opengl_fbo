@@ -9,8 +9,8 @@ import com.test.gl_draw.gl_base.Texture;
 public class GLTextureView extends GLView {
 	private TextureDraw mDraw = new TextureDraw();
 
-	public void SetTexture(Texture texture) {
-		mDraw.SetTexture(texture);
+	public void SetTexture(Texture texture, boolean destory_texture_when_detach) {
+		mDraw.SetTexture(texture, destory_texture_when_detach);
 	}
 
 	public void SetFillMode(TextureDraw.FillMode mode) {
@@ -35,4 +35,16 @@ public class GLTextureView extends GLView {
 	public void OnDraw(GL10 gl) {
 		mDraw.Draw(gl);
 	}
+	
+	@Override
+	public void Detach() {
+		super.Detach();
+		mDraw.DetachFromView();
+	}
+	
+	@Override
+	public void detachFromThread() {
+        super.detachFromThread();
+        mDraw.detachFromThread();
+    }
 }

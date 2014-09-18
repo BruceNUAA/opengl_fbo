@@ -53,7 +53,10 @@ public class Texture extends NonThreadSafe implements Cloneable {
     public void Init(Texture texture) {
         CheckThread();
         
-        UnLoad();
+        if (this == texture)
+        	return;
+        
+        Destory();
 
         mType = texture.mType;
         mBitmap = texture.mBitmap;
@@ -141,7 +144,7 @@ public class Texture extends NonThreadSafe implements Cloneable {
             mTexture = GLHelper.loadTexture(b);
         }
 
-        GLHelper.checkGLError();
+        CheckThreadError();
         return GLHelper.isTexture(mTexture);
     }
 
@@ -197,6 +200,14 @@ public class Texture extends NonThreadSafe implements Cloneable {
         }
     }
 
+    public void Destory()  {
+    	UnLoad();
+    	
+    	if (mBitmap != null && !mBitmap.isRecycled()) {
+    		mBitmap.recycle();
+    		mBitmap = null;
+    	}
+    }
     public RectF getTextRect() {
         return mTextRectF;
     }
@@ -238,7 +249,7 @@ public class Texture extends NonThreadSafe implements Cloneable {
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
         
-        GLHelper.checkGLError();
+        CheckThreadError();
         return true;
     }
     
@@ -246,7 +257,7 @@ public class Texture extends NonThreadSafe implements Cloneable {
         if (isValid())
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
         
-        GLHelper.checkGLError();
+        CheckThreadError();
     }
 
     //

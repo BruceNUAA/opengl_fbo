@@ -125,7 +125,6 @@ public class GLRender implements GLSurfaceView.Renderer {
             }
         });
         
-        GLHelper.checkGLError();
     }
 
     @Override
@@ -142,7 +141,6 @@ public class GLRender implements GLSurfaceView.Renderer {
             }
         });
         
-        GLHelper.checkGLError();
     }
 
     @Override
@@ -151,8 +149,6 @@ public class GLRender implements GLSurfaceView.Renderer {
             iframe.OnFrame(gl);
         
         mMainScene.onDrawFrame(gl);
-        
-        GLHelper.checkGLError();
     }
 
     public void destory() {

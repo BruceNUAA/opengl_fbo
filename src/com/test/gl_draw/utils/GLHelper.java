@@ -121,7 +121,7 @@ public class GLHelper {
 	}
 
 	public static int createTargetTexture(int width, int height) {
-		checkGLError();
+
 		int[] textures = new int[1];
 		GLES20.glGenTextures(1, textures, 0);
 

@@ -300,7 +300,8 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
     private void postGLViewInitTask() {
         final GLView rootView = mRootScene.rootview();
         rootView.detachFromThread();
-
+        mRootScene.detachFromThread();
+        
         Runnable gl_init_task = new Runnable() {
             public void run() {
 

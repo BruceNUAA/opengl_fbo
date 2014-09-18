@@ -65,7 +65,7 @@ public class GLViewTest {
 
 			GLRotateView view6 = new GLRotateView();
 
-			view6.SetTexture(texture);
+			view6.SetTexture(texture, true);
 			view6.setOnTouchLisener(touch);
 			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds()
 					.height());
@@ -107,7 +107,7 @@ public class GLViewTest {
 			texture = new Texture();
 			texture.Init(b);
 			b.recycle();
-			view5.SetTexture(texture);
+			view5.SetTexture(texture, true);
 			view5.setOnTouchLisener(touch);
 			view5.SetBounds(new RectF(0.0f, 00, 300.0f, 450.0f));
 			view5.SetBackgound(0x2fffffff);
@@ -124,7 +124,7 @@ public class GLViewTest {
 			GLRotateView view6 = new GLRotateView();
 			view6.setRotateOrigin(450, 300);
 			view6.setRotateDegree(10);
-			view6.SetTexture(texture);
+			view6.SetTexture(texture, true);
 			view6.setOnTouchLisener(touch);
 			view6.SetBounds(new RectF(340.0f, 00, 670.0f, 450.0f));
 			view6.SetBackgound(0x2fffffff);
@@ -134,7 +134,7 @@ public class GLViewTest {
 		GLTextureView view2 = new GLTextureView();
 		texture = new Texture();
 		texture.Init("ID = " + view2.id(), false, 50);
-		view2.SetTexture(texture);
+		view2.SetTexture(texture, true);
 		view2.setOnTouchLisener(touch);
 		view2.SetBounds(new RectF(30.0f, 15, 300.0f, 500.0f));
 		view2.SetBackgound(0xff0000ff);
@@ -143,7 +143,7 @@ public class GLViewTest {
 		GLTextureView view3 = new GLTextureView();
 		texture = new Texture();
 		texture.Init("ID = " + view3.id(), false, 50);
-		view3.SetTexture(texture);
+		view3.SetTexture(texture, true);
 		view3.setOnTouchLisener(touch);
 		view3.SetBounds(new RectF(00.0f, 0, 300.0f, 200.0f));
 		view3.SetBackgound(0x5fffff00);
@@ -152,7 +152,7 @@ public class GLViewTest {
 		GLTextureView view4 = new GLTextureView();
 		texture = new Texture();
 		texture.Init("ID = " + view4.id(), false, 50);
-		view4.SetTexture(texture);
+		view4.SetTexture(texture, true);
 		view4.setOnTouchLisener(touch);
 		view4.SetBounds(new RectF(30.0f, 150, 300.0f, 500.0f));
 		view4.SetBackgound(0xffff0000);

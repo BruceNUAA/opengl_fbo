@@ -31,7 +31,7 @@ public interface IGLView extends ITouchEvent {
 
     void SetBackgound(int... color);
 
-    void SetBackgound(Texture texture);
+    void SetBackgound(Texture texture, boolean destory_texture_when_detach);
 
     void Draw(GL10 gl);
 
