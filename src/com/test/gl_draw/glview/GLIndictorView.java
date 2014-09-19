@@ -20,7 +20,7 @@ public class GLIndictorView extends GLTextureView {
 
     public void SetPos(float pos, float len) {
         if (mPos == pos && mLen == len && !Bounds().isEmpty())
-            return;
+            return; 
 
         mPos = pos;
         mLen = len;

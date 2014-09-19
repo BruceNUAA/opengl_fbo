@@ -48,7 +48,7 @@ public class GLViewTest {
 		float w = GLView.sRenderWidth;
 		float h = GLView.sRenderHeight;
 
-		GLView view = new GLDragView();
+		GLView view = new GLDragViewTest();
 		view.setOnTouchLisener(touch);
 		view.SetBounds(new RectF(w * 0.1f, h * 0.1f, w * 0.9f, h * 0.9f));
 		view.SetBackgound(0x3fff0000);
@@ -79,6 +79,34 @@ public class GLViewTest {
 
 			view6.SetBackgound(0xa500ffff);
 			view.AddView(view6);
+
+			GLZoomView view2 = new GLZoomView();
+
+			RectF rc1 = new RectF(w * 0.4f, h * 0.4f, w * 0.6f, h * 0.6f);
+			RectF rc2 = new RectF(0, 0, w, h);
+			view2.SetZoomRect(rc1, rc2);
+			view2.SetBounds(rc1);
+			view2.SetBackgound(0xff00ffff);
+
+			view2.setOnTouchLisener(new IGLView.OnTouchListener() {
+
+				@Override
+				public boolean OnClick(final IGLView v) {
+					ThreadUtils.postOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							long c = System.currentTimeMillis() % 1000;
+							DebugToast.showLong(KApplication.sApplication, "GLZoomView:"
+									+ v.id() + ":\tTime: " + c);
+
+						}
+					});
+					return false;
+				}
+			});
+			
+			root_view.AddView(view2);
 		}
 	}
 

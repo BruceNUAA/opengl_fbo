@@ -22,6 +22,7 @@ public class GLRotateView extends GLTextureView {
 
 	public void setRotateDegree(float d) {
 		mRotateDegree = d;
+		InValidate();
 	}
 
 	public void setRotateOrigin(float... rotate_orgin) {
@@ -30,6 +31,7 @@ public class GLRotateView extends GLTextureView {
 
 		mRotateOrigin[0] = rotate_orgin[0];
 		mRotateOrigin[1] = rotate_orgin[1];
+		InValidate();
 	}
 	
 	public float getRotateDegree() {

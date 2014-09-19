@@ -165,7 +165,8 @@ public class GLView extends NonThreadSafe implements IGLView {
         if (xyzh.length < 4)
             return;
 
-        mBounds.set(xyzh[0], xyzh[1], xyzh[2] + xyzh[0], xyzh[3] + xyzh[1]);
+        RectF rc = new RectF(xyzh[0], xyzh[1], xyzh[2] + xyzh[0], xyzh[3] + xyzh[1]);
+        SetBounds(rc);
     }
 
     @Override
