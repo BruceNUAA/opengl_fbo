@@ -208,7 +208,8 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 			return;
 		}
 		
-		IntBuffer framebuffer = IntBuffer.allocate(1);
+	//	IntBuffer framebuffer = IntBuffer.allocate(1);
+		int [] framebuffer = new int[1];
 		IntBuffer depthRenderbuffer = IntBuffer.allocate(1);
 		IntBuffer texture = IntBuffer.allocate(1);
 		int texWidth = 521, texHeight = 512;
@@ -223,7 +224,7 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 			// return with appropriate error
 		}
 		// generate the framebuffer, renderbuffer, and texture object names
-		GLES20.glGenFramebuffers(1, framebuffer);
+		GLES20.glGenFramebuffers(1, framebuffer, 0);
 		GLES20.glGenRenderbuffers(1, depthRenderbuffer);
 		GLES20.glGenTextures(1, texture);
 		// bind texture and load the texture mip-level 0
@@ -250,7 +251,7 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 		GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER,
 				GLES20.GL_DEPTH_COMPONENT16, texWidth, texHeight);
 		// bind the framebuffer
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer.get(0));
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer[0]);
 		// specify texture as color attachment
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
 				GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D,
@@ -316,7 +317,7 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 
 		// cleanup
 		GLES20.glDeleteRenderbuffers(1, depthRenderbuffer);
-		GLES20.glDeleteFramebuffers(1, framebuffer);
+		GLES20.glDeleteFramebuffers(1, framebuffer, 0);
 		GLES20.glDeleteTextures(1, texture);
 	}
 

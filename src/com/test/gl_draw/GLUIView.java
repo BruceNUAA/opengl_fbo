@@ -259,7 +259,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
     private void configureSurface(Context context) {
         mGestureDector = new GestureDetector(context, this);
         mRender = new GLRender(this, mRootScene);
-
+ 
         if (true) {
             setEGLConfigChooser(new MultisampleConfigChooser());
         } else {

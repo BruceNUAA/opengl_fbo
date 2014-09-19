@@ -15,7 +15,7 @@ public class GLTestView extends GLView {
 	}
 	
 	@Override
-	public void onParentLayoutChange(IGLView parent, RectF old_r, RectF new_r) {
+	public void onParentLayoutChange(GLView parent, RectF old_r, RectF new_r) {
 		SetBounds(new_r);
 		
 	}

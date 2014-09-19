@@ -6,6 +6,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.glview.GLView;
 
 public interface IGLView extends ITouchEvent {
 
@@ -59,23 +60,23 @@ public interface IGLView extends ITouchEvent {
 
     void Detach();
     
-    void onParentLayoutChange(IGLView parent, RectF old_r, RectF new_r);
+    void onParentLayoutChange(GLView parent, RectF old_r, RectF new_r);
 
     // 子View
 
     boolean HitTest(float x, float y);
 
-    IGLView FindViewByPos(float x, float y);
+    GLView FindViewByPos(float x, float y);
 
-    IGLView FindViewByID(int id);
+    GLView FindViewByID(int id);
 
-    IGLView Parent();
+    GLView Parent();
 
-    void SetParent(IGLView parent);
+    void SetParent(GLView parent);
 
-    void AddView(IGLView view);
+    void AddView(GLView view);
 
-    void RemoveView(IGLView view);
+    void RemoveView(GLView view);
     
     void RemoveAllView();
 

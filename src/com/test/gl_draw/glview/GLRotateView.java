@@ -6,9 +6,7 @@ import javax.microedition.khronos.opengles.GL11;
 import android.graphics.RectF;
 import android.opengl.GLES20;
 
-import com.test.gl_draw.gl_base.FrameBuffer;
 import com.test.gl_draw.gl_base.GLClipManager;
-import com.test.gl_draw.igl_draw.IGLView;
 
 public class GLRotateView extends GLTextureView {
 
@@ -32,6 +30,10 @@ public class GLRotateView extends GLTextureView {
 
 		mRotateOrigin[0] = rotate_orgin[0];
 		mRotateOrigin[1] = rotate_orgin[1];
+	}
+	
+	public float getRotateDegree() {
+		return mRotateDegree;
 	}
 
 	public float[] getOrigin() {
@@ -64,12 +66,12 @@ public class GLRotateView extends GLTextureView {
 	}
 
 	@Override
-	public void AddView(IGLView view) {
+	public void AddView(GLView view) {
 		throw new RuntimeException();
 	}
 
 	@Override
-	public void RemoveView(IGLView view) {
+	public void RemoveView(GLView view) {
 		throw new RuntimeException();
 	}
 

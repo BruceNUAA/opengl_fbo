@@ -9,8 +9,9 @@ public class GLRotateViewTest extends GLRotateView {
 	// 绘制
 		@Override
 		public void Draw(GL10 gl) {
+			float alpha = 1-  Math.abs(getRotateDegree()/180)*10f;
 			
-			FrameBuffer.getInstance().DrawToLayer(gl, 0.5f);
+			FrameBuffer.getInstance().DrawToLayer(gl, alpha);
 			
 			super.Draw(gl);
 			

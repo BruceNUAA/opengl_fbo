@@ -15,7 +15,7 @@ import android.util.Log;
 import com.test.gl_draw.utils.GLHelper;
 import com.test.gl_draw.utils.NonThreadSafe;
 
-public class Texture extends NonThreadSafe implements Cloneable {
+public class Texture extends NonThreadSafe {
 
     private enum TextureType {
         BITMAP,
@@ -37,32 +37,32 @@ public class Texture extends NonThreadSafe implements Cloneable {
     private int[] mRealSize = {
             0, 0
     };
-    
+
     private int sMaxTryCound = 3;
-    
+
     private int mTryCount = sMaxTryCound;
-    
+
     public Texture() {
-        
+
     }
-    
+
     public Texture(Texture t) {
         Init(t);
     }
 
     public void Init(Texture texture) {
         CheckThread();
-        
+
         if (this == texture)
-        	return;
-        
-        Destory();
+            return;
+
+        Destory(mBitmap != null && !mBitmap.sameAs(texture.mBitmap));
 
         mType = texture.mType;
         mBitmap = texture.mBitmap;
 
         mTryCount = sMaxTryCound;
-        
+
         mStringTxt = texture.mStringTxt;
 
         mTextRectF.set(texture.mTextRectF);
@@ -80,10 +80,10 @@ public class Texture extends NonThreadSafe implements Cloneable {
 
     public boolean Init(String text, boolean force, float text_size, float max_width) {
         CheckThread();
-        
+
         if (text == null || text.isEmpty() || text.equals(mStringTxt))
             return false;
-        
+
         mStringTxt = new String(text);
 
         Bitmap bitmap = textToString(mStringTxt, max_width, text_size);
@@ -96,7 +96,7 @@ public class Texture extends NonThreadSafe implements Cloneable {
 
     public boolean Init(Bitmap b) {
         CheckThread();
-        
+
         if (b == null) {
             return false;
         }
@@ -105,11 +105,12 @@ public class Texture extends NonThreadSafe implements Cloneable {
             return true;
 
         mType = TextureType.BITMAP;
+        
+        Destory(!b.sameAs(mBitmap));
+        
         mBitmap = b;
 
         mTryCount = sMaxTryCound;
-        
-        UnLoad();
 
         mTextureOriginW = b.getWidth();
         mTextureOriginH = b.getHeight();
@@ -150,7 +151,7 @@ public class Texture extends NonThreadSafe implements Cloneable {
 
     public boolean Init(int w, int h) {
         CheckThread();
-        
+
         if (mTextureOriginW == w && mTextureOriginH == h && isValid())
             return true;
 
@@ -200,14 +201,19 @@ public class Texture extends NonThreadSafe implements Cloneable {
         }
     }
 
-    public void Destory()  {
-    	UnLoad();
-    	
-    	if (mBitmap != null && !mBitmap.isRecycled()) {
-    		mBitmap.recycle();
-    		mBitmap = null;
-    	}
+    public void Destory(boolean recyle_bitmap) {
+        UnLoad();
+
+        if (recyle_bitmap && mBitmap != null && !mBitmap.isRecycled()) {
+            mBitmap.recycle();
+            mBitmap = null;
+        }
     }
+
+    public void Destory() {
+        Destory(true);
+    }
+
     public RectF getTextRect() {
         return mTextRectF;
     }
@@ -227,17 +233,17 @@ public class Texture extends NonThreadSafe implements Cloneable {
     }
 
     public boolean ReloadIfNeed() {
-     
-        if (!isValid() && mTryCount -- > 0) {
+
+        if (!isValid() && mTryCount-- > 0) {
             if (mType == TextureType.BITMAP && mBitmap != null) {
                 Init(mBitmap);
             } else {
                 Init(mTextureOriginW, mTextureOriginH);
             }
-            
+
             Log.e("Texture", "try load - error:" + mTryCount + " | " + isValid());
         }
-        
+
         return isValid();
     }
 
@@ -248,15 +254,15 @@ public class Texture extends NonThreadSafe implements Cloneable {
         }
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
-        
+
         CheckThreadError();
         return true;
     }
-    
+
     public void unBind() {
         if (isValid())
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        
+
         CheckThreadError();
     }
 

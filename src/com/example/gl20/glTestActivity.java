@@ -35,7 +35,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 		// Render the view only when there is a change in the drawing data
 		// Set the Renderer for drawing on the GLSurfaceView
 
-		if (false) {
+		if (true) {
 			setEGLConfigChooser(8, 8, 8, 8, 0, 0);
 		} else {
 			setEGLConfigChooser(new EGLConfigChooser() {

@@ -13,7 +13,6 @@ import android.os.Looper;
 
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
-import com.test.gl_draw.utils.GLHelper;
 
 public class GLRender implements GLSurfaceView.Renderer {
 
