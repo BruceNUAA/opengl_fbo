@@ -1,4 +1,4 @@
-package com.test.gl_draw.utils;
+package com.test.gl_draw.utils.helper;
 
 import android.content.Context;
 import android.widget.Toast;

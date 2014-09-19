@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package com.test.gl_draw.utils;
+package com.test.gl_draw.utils.helper;
 
 import android.os.Handler;
 import android.os.Looper;

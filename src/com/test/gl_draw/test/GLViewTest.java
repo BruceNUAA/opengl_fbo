@@ -14,8 +14,8 @@ import com.test.gl_draw.glview.GLTestView;
 import com.test.gl_draw.glview.GLTextureView;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.igl_draw.IGLView;
-import com.test.gl_draw.utils.DebugToast;
-import com.test.gl_draw.utils.ThreadUtils;
+import com.test.gl_draw.utils.helper.DebugToast;
+import com.test.gl_draw.utils.helper.ThreadUtils;
 
 public class GLViewTest {
 	public static void test(GLView root_view) {
@@ -30,25 +30,27 @@ public class GLViewTest {
 	public static void test1(GLView root_view) {
 		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
 			@Override
-			public boolean OnClick(IGLView v) {
+			public boolean OnClick(final IGLView v) {
 				ThreadUtils.postOnUiThread(new Runnable() {
-					
+
 					@Override
 					public void run() {
-						long c = System.currentTimeMillis()%1000;
-						DebugToast.showLong(KApplication.sApplication, "touch:"+c);
-						
+						long c = System.currentTimeMillis() % 1000;
+						DebugToast.showLong(KApplication.sApplication, "View:"
+								+ v.id() + ":\tTime:" + c);
+
 					}
 				});
-			//	DLog.e("Test", "Touch ID = " + v.id());
 				return true;
 			}
 		};
 
+		float w = GLView.sRenderWidth;
+		float h = GLView.sRenderHeight;
+
 		GLView view = new GLDragView();
-		//view.setOnTouchLisener(touch);
-		view.SetBounds(new RectF(100, 100, GLView.sRenderWidth - 30,
-				GLView.sRenderHeight - 30));
+		view.setOnTouchLisener(touch);
+		view.SetBounds(new RectF(w * 0.1f, h * 0.1f, w * 0.9f, h * 0.9f));
 		view.SetBackgound(0x3fff0000);
 		root_view.AddView(view);
 
@@ -63,18 +65,18 @@ public class GLViewTest {
 			texture.Init(b);
 			b.recycle();
 
-			GLRotateView view6 = new GLRotateView();
+			GLRotateView view6 = new GLRotateViewTest();
 
 			view6.SetTexture(texture, true);
 			view6.setOnTouchLisener(touch);
 			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds()
 					.height());
-			bF.inset(200, 100);
-			
+			bF.inset(w * 0.2f, h * 0.2f);
+
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
-			
+
 			view6.SetBounds(bF);
-			
+
 			view6.SetBackgound(0xa500ffff);
 			view.AddView(view6);
 		}
@@ -84,7 +86,7 @@ public class GLViewTest {
 		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
 			@Override
 			public boolean OnClick(IGLView v) {
-				//DLog.e("Test", "Touch ID = " + v.id());
+				// DLog.e("Test", "Touch ID = " + v.id());
 				return true;
 			}
 		};

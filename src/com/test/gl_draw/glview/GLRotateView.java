@@ -127,8 +127,6 @@ public class GLRotateView extends GLTextureView {
 	@Override
 	public void Draw(GL10 gl) {
 		
-		FrameBuffer.getInstance().DrawToLayer(gl, 0.5f);
-		
 		setDrawClipBound(gl);
 
 		SetRotateEven(gl);
@@ -141,7 +139,6 @@ public class GLRotateView extends GLTextureView {
 
 		restoreDrawClipBound(gl);
 		
-		FrameBuffer.getInstance().Restore(gl);
 	}
 
 	public boolean isPtInRegin(float x, float y, RectF rc) {

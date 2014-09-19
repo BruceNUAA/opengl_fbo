@@ -9,8 +9,8 @@ import android.graphics.Color;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.utils.BufferUtil;
 import com.test.gl_draw.utils.NonThreadSafe;
+import com.test.gl_draw.utils.helper.BufferUtil;
 
 public class TextureDraw extends NonThreadSafe {
 

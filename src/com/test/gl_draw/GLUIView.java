@@ -24,7 +24,7 @@ import com.test.gl_draw.glview.GLRootScene;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.igl_draw.IGLDispatchEvent;
 import com.test.gl_draw.igl_draw.ITouchEvent;
-import com.test.gl_draw.utils.ThreadUtils;
+import com.test.gl_draw.utils.helper.ThreadUtils;
 
 public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         View.OnTouchListener, GestureDetector.OnGestureListener, IGLDispatchEvent {

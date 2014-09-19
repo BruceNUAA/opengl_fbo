@@ -8,7 +8,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.utils.BufferUtil;
+import com.test.gl_draw.utils.helper.BufferUtil;
 
 //           stretch pos
 //           pos[0] pos[1]
