@@ -34,7 +34,7 @@ public class GLNinePatchDrawTest extends GLView {
 
 			RectF rect = new RectF(rc);
 			TabThumbManager tb = TabThumbManager.getInstance();
-			mNineDraw.setRect(tb.getShadowTexture(), tb.getShadowStratchPos(),
+			mNineDraw.setTexture(tb.getShadowTexture(), tb.getShadowStratchPos(),
 					tb.getShadowBorder());
 	
 			mNineDraw.setRect(rect);

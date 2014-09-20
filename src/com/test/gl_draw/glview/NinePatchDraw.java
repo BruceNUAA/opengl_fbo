@@ -5,9 +5,11 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import android.R.integer;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.utils.NonThreadSafe;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 //           stretch pos
@@ -28,13 +30,14 @@ import com.test.gl_draw.utils.helper.BufferUtil;
 //    13--------12----10---------9
 //               ↑   ↑
 //            stratch pos
-public class NinePatchDraw {
-	Texture mTexture;
+public class NinePatchDraw extends NonThreadSafe {
+	private Texture mTexture;
 
-	FloatBuffer mTXCoordBuffer;
-	FloatBuffer mVBuffer;
+	private FloatBuffer mTXCoordBuffer;
+	private FloatBuffer mVBuffer;
+	private FloatBuffer mColorBuffer;
 
-	ByteBuffer mIdexBuffer;
+	private ByteBuffer mIdexBuffer;
 
 	private boolean mShowBorderInside = false;
 
@@ -42,6 +45,8 @@ public class NinePatchDraw {
 	private float[] mBorder;
 
 	private RectF mRect;
+
+	private float mCornerRScale = 1;
 
 	public NinePatchDraw() {
 		int[][] index = new int[][] {
@@ -72,14 +77,57 @@ public class NinePatchDraw {
 		UpdateRect();
 	}
 
-	public void setRect(Texture texture, float[] stretchPos, float[] border) {
-		if (texture == null || !texture.isValid() || stretchPos.length < 4
-				|| border.length < 4)
+	public void setAlpha(float alpha) {
+		alpha = Math.max(0, Math.min(1, alpha));
+
+		float[][] colors = new float[][] {
+				// 0, 1, 2, 3
+				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				// 4, 5, 6, 7
+				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				// 8, 9, 10, 11
+				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha }, { 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha },
+				// 12, 13, 14, 15
+				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha }, { 1, 1, 1, alpha },
+				{ 1, 1, 1, alpha }, };
+
+		mColorBuffer = BufferUtil.newFloatBuffer(colors.length
+				* colors[0].length);
+
+		for (int i = 0; i < colors.length; i++) {
+			for (int j = 0; j < colors[i].length; j++) {
+				mColorBuffer.put(i * colors[i].length + j, colors[i][j]);
+			}
+		}
+
+	}
+
+	public void setTexture(Texture texture, float[] stretchPos, float[] border) {
+		if (texture == null || !texture.isValid() || stretchPos.length < 4)
 			return;
+
+		if (border == null || border.length < 4) {
+			border = new float[4];
+		}
+
 		mStretchPos = stretchPos.clone();
 		mBorder = border.clone();
 		mTexture = texture;
 
+		UpdateTexture();
+	}
+
+	public void setStretchPos(float[] stretchPos) {
+		if (stretchPos.length < 4)
+			return;
+
+		mStretchPos = stretchPos.clone();
 		UpdateTexture();
 	}
 
@@ -92,15 +140,22 @@ public class NinePatchDraw {
 	}
 
 	public void Draw(GL10 gl) {
+		CheckThread();
 
 		if (mTXCoordBuffer == null || mVBuffer == null || mIdexBuffer == null
 				|| mTexture == null || !mTexture.isValid())
 			return;
 
 		if (!mTexture.bind())
-		    return;
-		
-		gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+			return;
+
+		boolean has_color = mColorBuffer != null;
+
+		if (has_color) {
+			gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+		} else {
+			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+		}
 
 		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffer);
 		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
@@ -108,9 +163,21 @@ public class NinePatchDraw {
 		gl.glDrawElements(GL10.GL_TRIANGLES, mIdexBuffer.capacity(),
 				GL10.GL_UNSIGNED_BYTE, mIdexBuffer);
 		//
-		gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
-		
+		if (!has_color) {
+			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
+		}
+
 		mTexture.unBind();
+
+		CheckThreadError();
+	}
+
+	public void setCornerRate(float scale) {
+		if (mCornerRScale == scale)
+			return;
+
+		mCornerRScale = scale;
+		UpdateRect();
 	}
 
 	private void UpdateTexture() {
@@ -165,10 +232,14 @@ public class NinePatchDraw {
 
 		float[] pos = mStretchPos.clone();
 
+		for (int i = 0; i < mStretchPos.length; i++) {
+			pos[i] *= mCornerRScale;
+		}
+
 		float[] border = new float[4];
 
 		if (!mShowBorderInside) {
-			 border = mBorder.clone();
+			border = mBorder.clone();
 		}
 
 		float[][] vBuffer = new float[][] {

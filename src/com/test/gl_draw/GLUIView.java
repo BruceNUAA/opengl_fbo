@@ -22,12 +22,10 @@ import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.MultisampleConfigChooser;
 import com.test.gl_draw.glview.GLRootScene;
 import com.test.gl_draw.glview.GLView;
-import com.test.gl_draw.igl_draw.IGLDispatchEvent;
 import com.test.gl_draw.igl_draw.ITouchEvent;
-import com.test.gl_draw.utils.helper.ThreadUtils;
 
 public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
-        View.OnTouchListener, GestureDetector.OnGestureListener, IGLDispatchEvent {
+        View.OnTouchListener, GestureDetector.OnGestureListener {
 
     // static
     private static GLUIView sMultiWindowView = null;
@@ -228,12 +226,10 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
     }
 
     private boolean isOnGLThread() {
-        return Looper.getMainLooper().getThread() != Thread
-                .currentThread();
+        return GLRender.IsOnGLThread();
     }
 
-    @Override
-    public void doGLTask(final Runnable r) {
+    private void doGLTask(final Runnable r) {
         if (r == null)
             return;
 
@@ -246,14 +242,6 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
                 queueEvent(r);
             }
         }
-    }
-
-    @Override
-    public void doUITask(Runnable r) {
-        if (r == null)
-            return;
-
-        ThreadUtils.postOnUiThread(r);
     }
 
     private void configureSurface(Context context) {

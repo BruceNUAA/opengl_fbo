@@ -36,9 +36,11 @@ public class GLViewTest {
 					public void run() {
 						long c = System.currentTimeMillis() % 1000;
 
-						DebugToast.showLong(KApplication.sApplication,
-								v.getClass().getSimpleName() + ":" + v.id()
-										+ ":\tTime:" + c);
+						DebugToast.showLong(KApplication.sApplication, v
+								.getClass().getSimpleName()
+								+ ":"
+								+ v.id()
+								+ ":\tTime:" + c);
 
 					}
 				});
@@ -83,11 +85,13 @@ public class GLViewTest {
 
 			GLZoomView view2 = new GLZoomView();
 
-			RectF rc1 = new RectF(w * 0.4f, h * 0.4f, w * 0.6f, h * 0.6f);
-			RectF rc2 = new RectF(10, 10, w-10, h-10);
+			float rw = Math.min(w, h) * 0.2f;
+			RectF rc1 = new RectF((w - rw) / 2, h - 2 * rw, (w + rw) / 2, h
+					- rw);
+			RectF rc2 = new RectF(0, 0, w, h);
 			view2.SetZoomRect(rc1, rc2);
 			view2.SetBounds(rc1);
-			view2.SetBackgound(0xff00ffff);
+			// view2.SetBackgound(0xff00ffff);
 
 			root_view.AddView(view2);
 		}

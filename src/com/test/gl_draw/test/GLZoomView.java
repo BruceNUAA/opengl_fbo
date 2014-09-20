@@ -1,21 +1,32 @@
 package com.test.gl_draw.test;
 
+import javax.microedition.khronos.opengles.GL10;
+
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.RectF;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 import com.test.gl_draw.KApplication;
 import com.test.gl_draw.gl_base.GLTimer;
-import com.test.gl_draw.glview.GLTextureView;
+import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.glview.GLView;
+import com.test.gl_draw.glview.NinePatchDraw;
 import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.utils.helper.DebugToast;
 import com.test.gl_draw.utils.helper.ThreadUtils;
 
-public class GLZoomView extends GLTextureView implements
-		GLTimer.OnAnimatListener {
+public class GLZoomView extends GLView implements GLTimer.OnAnimatListener {
 
 	private RectF mStartRect = new RectF();
 	private RectF mEndRect = new RectF();
 
 	private GLTimer mTimer = null;
+
+	private NinePatchDraw mDraw = new NinePatchDraw();
 
 	IGLView.OnTouchListener mTouchLisener = new IGLView.OnTouchListener() {
 
@@ -50,6 +61,43 @@ public class GLZoomView extends GLTextureView implements
 	public void SetZoomRect(RectF start, RectF end) {
 		mStartRect.set(start);
 		mEndRect.set(end);
+		int w = (int) Math.min(start.width(), start.height());
+
+		Bitmap bitmap = null;
+		try {
+
+			bitmap = Bitmap.createBitmap(w, w, Bitmap.Config.ARGB_8888);
+			Canvas canvas = new Canvas(bitmap);
+			Paint paint = new Paint();
+			paint.setAntiAlias(true);
+			paint.setColor(Color.YELLOW);
+			paint.setStyle(Paint.Style.FILL);
+
+			canvas.drawRoundRect(new RectF(0, 0, w, w), w / 2.0f, w / 2.0f,
+					paint);
+		} catch (Exception e) {
+
+		} catch (Error e) {
+		}
+		if (bitmap == null)
+			return;
+
+		Texture texture = new Texture();
+		texture.Init(bitmap);
+		mDraw.setTexture(texture, new float[] { w / 2, w / 2, w / 2, w / 2 },
+				null);
+	}
+
+	@Override
+	public void OnDraw(GL10 gl) {
+		super.OnDraw(gl);
+		mDraw.Draw(gl);
+	}
+
+	@Override
+	public void SetBounds(RectF rc) {
+		super.SetBounds(rc);
+		mDraw.setRect(rc);
 	}
 
 	@Override
@@ -65,14 +113,16 @@ public class GLZoomView extends GLTextureView implements
 		float r = mStartRect.right * (1 - new_v) + mEndRect.right * new_v;
 		float b = mStartRect.bottom * (1 - new_v) + mEndRect.bottom * new_v;
 
-		getBackgoundDraw().SetAlpha(1 - new_v);
+		mDraw.setAlpha(1 - new_v);
+		mDraw.setCornerRate(1 - new_v);
 		SetBounds(l, t, r - l, b - t);
 	}
 
 	@Override
 	public void OnAnimationEnd() {
 		SetBounds(mStartRect);
-		getBackgoundDraw().SetAlpha(1);
+		mDraw.setAlpha(1);
+		mDraw.setCornerRate(1);
 	}
 
 	private void start() {
@@ -80,7 +130,8 @@ public class GLZoomView extends GLTextureView implements
 			mTimer.stop();
 		}
 
-		mTimer = GLTimer.ValeOf(0, 1, 1000, this);
+		mTimer = GLTimer.ValeOf(0, 1, 2000, this);
+		mTimer.setInterpolator(new AccelerateDecelerateInterpolator());
 		mTimer.start();
 	}
 

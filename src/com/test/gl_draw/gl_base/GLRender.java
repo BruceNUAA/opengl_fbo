@@ -1,4 +1,3 @@
-
 package com.test.gl_draw.gl_base;
 
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,143 +15,157 @@ import com.test.gl_draw.igl_draw.ITouchEvent;
 
 public class GLRender implements GLSurfaceView.Renderer {
 
-    // /
-    public interface IRenderFrame {
-        public void OnFrame(GL10 gl);
-    }
+	// /
+	public interface IRenderFrame {
+		public void OnFrame(GL10 gl);
+	}
 
-    public interface IRenderMsg {
+	public interface IRenderMsg {
 
-        void onSurfaceCreated();
+		void onSurfaceCreated();
 
-        void onSurfaceChanged(int w, int h);
+		void onSurfaceChanged(int w, int h);
 
-        void requestRender(boolean once);
-    }
+		void requestRender(boolean once);
+	}
 
-    // static block {
-    private static GLRender sRender = null;
+	// static block {
+	private static GLRender sRender = null;
 
-    public static boolean isRenderOK() {
-        return sRender != null;
-    }
-    
-    public static void RegistFrameCallback(IRenderFrame iframe) {
-        if (!isRenderOK())
-            return;
-        
-        if (sRender.mRenderFameCallBack.contains(iframe)) {
-            return;
-        }
+	public static boolean isRenderOK() {
+		return sRender != null;
+	}
 
-        sRender.mRenderFameCallBack.add(iframe);
-    }
+	public static void RegistFrameCallback(IRenderFrame iframe) {
+		if (!isRenderOK())
+			return;
 
-    public static void UnRegistFrameCallback(IRenderFrame iframe) {
-        if (!isRenderOK())
-            return;
+		if (sRender.mRenderFameCallBack.contains(iframe)) {
+			return;
+		}
 
-        if (!sRender.mRenderFameCallBack.contains(iframe)) {
-            return;
-        }
+		sRender.mRenderFameCallBack.add(iframe);
+	}
 
-        sRender.mRenderFameCallBack.remove(iframe);
-    }
+	public static void UnRegistFrameCallback(IRenderFrame iframe) {
+		if (!isRenderOK())
+			return;
 
-    public static void RequestRender(final boolean once) {
-        if (!isRenderOK())
-            return;
+		if (!sRender.mRenderFameCallBack.contains(iframe)) {
+			return;
+		}
 
-        sRender.mMainUIHandler.post(new Runnable() {
+		sRender.mRenderFameCallBack.remove(iframe);
+	}
 
-            @Override
-            public void run() {
-                sRender.mIRenderMsg.requestRender(once);
-            }
-        });
-    }
-    
-    public static GL10 GL() {
-        if (!isRenderOK())
-            return null;
-        return sRender.mGl;
-    }
-    
-    // }
+	public static void RequestRender(final boolean once) {
+		if (!isRenderOK())
+			return;
 
-    // /
-    private IScene mMainScene;
-    private ITouchEvent mGestureListener;
+		sRender.mMainUIHandler.post(new Runnable() {
 
-    private Handler mMainUIHandler;
-    private IRenderMsg mIRenderMsg;
+			@Override
+			public void run() {
+				sRender.mIRenderMsg.requestRender(once);
+			}
+		});
+	}
 
-    private CopyOnWriteArrayList<IRenderFrame> mRenderFameCallBack;
+	public static GL10 GL() {
+		if (!isRenderOK())
+			return null;
+		return sRender.mGl;
+	}
 
-    private GL10 mGl;
-    //
-    public GLRender(IRenderMsg iRenderMsg, IScene scene) {
-        Assert.assertTrue(!isRenderOK());
+	public static boolean IsOnGLThread() {
+		if (!isRenderOK())
+			return false;
 
-        mMainScene = scene;
-        mGestureListener = scene.getEventHandle();
+		return Thread.currentThread() == sRender.mGLThread;
+	}
 
-        mMainUIHandler = new Handler(Looper.getMainLooper());
-        mIRenderMsg = iRenderMsg;
-        mRenderFameCallBack = new CopyOnWriteArrayList<GLRender.IRenderFrame>();
-    }
+	// }
 
-    public IScene getMainScene() {
-        return mMainScene;
-    }
+	// /
+	private IScene mMainScene;
+	private ITouchEvent mGestureListener;
 
-    public ITouchEvent getGestrueListener() {
-        return mGestureListener;
-    }
+	private Handler mMainUIHandler;
+	private IRenderMsg mIRenderMsg;
 
-    @Override
-    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mGl = gl;
-        sRender = this;
-        mMainScene.onSurfaceCreated(gl);
- 
-        mMainUIHandler.post(new Runnable() {
+	private CopyOnWriteArrayList<IRenderFrame> mRenderFameCallBack;
 
-            @Override
-            public void run() {
-                mIRenderMsg.onSurfaceCreated();
-            }
-        });
-        
-    }
+	private GL10 mGl;
 
-    @Override
-    public void onSurfaceChanged(GL10 gl, final int w, final int h) {
-        mGl = gl;
-       
-        mMainScene.onSurfaceChanged(gl, w, h);
+	private Thread mGLThread;
 
-        mMainUIHandler.post(new Runnable() {
+	//
+	public GLRender(IRenderMsg iRenderMsg, IScene scene) {
+		Assert.assertTrue(!isRenderOK());
 
-            @Override
-            public void run() {
-                mIRenderMsg.onSurfaceChanged(w, h);
-            }
-        });
-        
-    }
+		mMainScene = scene;
+		mGestureListener = scene.getEventHandle();
 
-    @Override
-    public void onDrawFrame(GL10 gl) {
-        for (IRenderFrame iframe : mRenderFameCallBack)
-            iframe.OnFrame(gl);
-        
-        mMainScene.onDrawFrame(gl);
-    }
+		mMainUIHandler = new Handler(Looper.getMainLooper());
+		mIRenderMsg = iRenderMsg;
+		mRenderFameCallBack = new CopyOnWriteArrayList<GLRender.IRenderFrame>();
+	}
 
-    public void destory() {
-        mMainScene.onDestory();
-        mRenderFameCallBack.clear();
-        GLRender.sRender = null;
-    }
+	public IScene getMainScene() {
+		return mMainScene;
+	}
+
+	public ITouchEvent getGestrueListener() {
+		return mGestureListener;
+	}
+
+	@Override
+	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		mGl = gl;
+		sRender = this;
+		mMainScene.onSurfaceCreated(gl);
+
+		mGLThread = Thread.currentThread();
+
+		mMainUIHandler.post(new Runnable() {
+
+			@Override
+			public void run() {
+				mIRenderMsg.onSurfaceCreated();
+			}
+		});
+
+	}
+
+	@Override
+	public void onSurfaceChanged(GL10 gl, final int w, final int h) {
+		mGl = gl;
+
+		mMainScene.onSurfaceChanged(gl, w, h);
+
+		mMainUIHandler.post(new Runnable() {
+
+			@Override
+			public void run() {
+				mIRenderMsg.onSurfaceChanged(w, h);
+			}
+		});
+
+	}
+
+	@Override
+	public void onDrawFrame(GL10 gl) {
+		for (IRenderFrame iframe : mRenderFameCallBack)
+			iframe.OnFrame(gl);
+
+		mMainScene.onDrawFrame(gl);
+	}
+
+	public void destory() {
+		mMainScene.onDestory();
+		mRenderFameCallBack.clear();
+		GLRender.sRender = null;
+
+		mGLThread = null;
+	}
 }
