@@ -1,16 +1,17 @@
-package com.test.gl_draw.glview;
+package com.test.gl_draw.test;
 
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
 import com.test.gl_draw.TabThumbManager;
-import com.test.gl_draw.igl_draw.IGLView;
+import com.test.gl_draw.glview.GLView;
+import com.test.gl_draw.glview.NinePatchDraw;
 
-public class GLTestView extends GLView {
+public class GLNinePatchDrawTest extends GLView {
 	private NinePatchDraw mNineDraw = new NinePatchDraw();
 
-	public GLTestView() {
+	public GLNinePatchDrawTest() {
 		mNineDraw.ShowBorderInside(true);
 	}
 	

@@ -6,7 +6,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
-import android.view.View.OnTouchListener;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLRender;
@@ -453,25 +452,26 @@ public class GLView extends NonThreadSafe implements IGLView {
     @Override
     public boolean onUp(float x, float y) {
         boolean handled = false;
-        x -= mBounds.left;
-        y -= mBounds.top;
-
+        float re_x = x - mBounds.left;
+        float re_y = y - mBounds.top;
+        
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
-                if (!v.HitTest(x, y))
+                GLView v = mChildViews.get(i);
+                if (!v.HitTest(re_x, re_y))
                     continue;
-                if (v.onUp(x, y)) {
+                
+                if (v.onUp(re_x, re_y)) {
                     handled = true;
                     break;
                 }
             }
         } else {
-            handled = mTouchTargetGlView.onUp(x, y);
+            handled = mTouchTargetGlView.onUp(re_x, re_y);
             mTouchTargetGlView = null;
         }
 
-        if (!handled && mTouchLisener != null) {
+        if (!handled && HitTest(x, y) && mTouchLisener != null) {
             handled = mTouchLisener.OnClick(this);
         }
 

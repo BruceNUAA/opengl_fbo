@@ -4,13 +4,13 @@
 
 package com.test.gl_draw.utils.helper;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Process;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Process;
 
 /**
  * Helper methods to deal with threading related tasks.

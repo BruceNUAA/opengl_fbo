@@ -10,7 +10,6 @@ import com.test.gl_draw.KApplication;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.glview.GLDragView;
 import com.test.gl_draw.glview.GLRotateView;
-import com.test.gl_draw.glview.GLTestView;
 import com.test.gl_draw.glview.GLTextureView;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.igl_draw.IGLView;
@@ -19,7 +18,7 @@ import com.test.gl_draw.utils.helper.ThreadUtils;
 
 public class GLViewTest {
 	public static void test(GLView root_view) {
-		GLView view = new GLTestView();
+		GLView view = new GLNinePatchDrawTest();
 		view.SetBackgound(0x5fffffff);
 		view.SetBounds(new RectF(100, 100, GLView.sRenderWidth - 100,
 				GLView.sRenderHeight - 100));
@@ -36,8 +35,10 @@ public class GLViewTest {
 					@Override
 					public void run() {
 						long c = System.currentTimeMillis() % 1000;
-						DebugToast.showLong(KApplication.sApplication, "View:"
-								+ v.id() + ":\tTime:" + c);
+
+						DebugToast.showLong(KApplication.sApplication,
+								v.getClass().getSimpleName() + ":" + v.id()
+										+ ":\tTime:" + c);
 
 					}
 				});
@@ -83,29 +84,11 @@ public class GLViewTest {
 			GLZoomView view2 = new GLZoomView();
 
 			RectF rc1 = new RectF(w * 0.4f, h * 0.4f, w * 0.6f, h * 0.6f);
-			RectF rc2 = new RectF(0, 0, w, h);
+			RectF rc2 = new RectF(10, 10, w-10, h-10);
 			view2.SetZoomRect(rc1, rc2);
 			view2.SetBounds(rc1);
 			view2.SetBackgound(0xff00ffff);
 
-			view2.setOnTouchLisener(new IGLView.OnTouchListener() {
-
-				@Override
-				public boolean OnClick(final IGLView v) {
-					ThreadUtils.postOnUiThread(new Runnable() {
-
-						@Override
-						public void run() {
-							long c = System.currentTimeMillis() % 1000;
-							DebugToast.showLong(KApplication.sApplication, "GLZoomView:"
-									+ v.id() + ":\tTime: " + c);
-
-						}
-					});
-					return false;
-				}
-			});
-			
 			root_view.AddView(view2);
 		}
 	}
