@@ -10,9 +10,9 @@ import android.view.View.OnTouchListener;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.NonThreadSafe;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
-import com.test.gl_draw.utils.NonThreadSafe;
 
 public class GLView extends NonThreadSafe implements IGLView {
 
@@ -87,12 +87,14 @@ public class GLView extends NonThreadSafe implements IGLView {
 
     @Override
     public void Detach() {
+        BeforeThreadCall();
+        
         for (IGLView v : mChildViews)
             v.Detach();
 
         mBackgoundDraw.DetachFromView();
         
-        CheckThreadError(null);
+        AfterThreadCall();
     }
 
     @Override
@@ -113,6 +115,8 @@ public class GLView extends NonThreadSafe implements IGLView {
         if (mVisibleListener != null) {
             mVisibleListener.OnVisibleChange(this);
         }
+        
+        InValidate();
     }
 
     // 绘制
@@ -121,14 +125,14 @@ public class GLView extends NonThreadSafe implements IGLView {
 
         if (!visible() || mAlpha == 0)
             return;
-        
-        CheckThread();
 
         RectF r = ClipBound();
 
         if (r.isEmpty())
             return;
 
+        BeforeThreadCall();
+        
         GLClipManager.getInstance().ClipRect(gl, r);
 
         OnDrawBackgound(gl);
@@ -139,7 +143,7 @@ public class GLView extends NonThreadSafe implements IGLView {
 
         OnDrawChilds(gl);
 
-        CheckThreadError(gl);
+        AfterThreadCall();
     }
 
     @Override
@@ -381,7 +385,9 @@ public class GLView extends NonThreadSafe implements IGLView {
     // touch
     @Override
     public boolean onSingleTapUp(float x, float y) {
-
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         x -= mBounds.left;
         y -= mBounds.top;
@@ -405,6 +411,9 @@ public class GLView extends NonThreadSafe implements IGLView {
     @Override
     public boolean onScroll(float start_x, float start_y, float cur_x,
             float cur_y, float distanceX, float distanceY) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         start_x -= mBounds.left;
         start_y -= mBounds.top;
@@ -433,6 +442,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 
     @Override
     public boolean onLongPress(float x, float y) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         x -= mBounds.left;
         y -= mBounds.top;
@@ -458,6 +470,9 @@ public class GLView extends NonThreadSafe implements IGLView {
     @Override
     public boolean onFling(float start_x, float start_y, float cur_x,
             float cur_y, float velocityX, float velocityY) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         start_x -= mBounds.left;
         start_y -= mBounds.top;
@@ -485,6 +500,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 
     @Override
     public boolean onUp(float x, float y) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         float re_x = x - mBounds.left;
         float re_y = y - mBounds.top;
@@ -516,6 +534,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 
     @Override
     public boolean onDown(float x, float y) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         x -= mBounds.left;
         y -= mBounds.top;
@@ -550,6 +571,9 @@ public class GLView extends NonThreadSafe implements IGLView {
 
     @Override
     public boolean onShowPress(float x, float y) {
+        if (!mVisible)
+            return false;
+        
         boolean handled = false;
         x -= mBounds.left;
         y -= mBounds.top;

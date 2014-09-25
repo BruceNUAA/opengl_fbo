@@ -1,16 +1,15 @@
 
 package com.test.gl_draw.gl_base;
 
-import javax.microedition.khronos.opengles.GL10;
-
-import junit.framework.Assert;
 import android.animation.TimeInterpolator;
 import android.os.SystemClock;
 import android.view.animation.LinearInterpolator;
 
-import com.test.gl_draw.utils.NonThreadSafe;
+import junit.framework.Assert;
 
-public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
+import javax.microedition.khronos.opengles.GL10;
+
+public class GLTimer implements GLRender.IRenderFrame {
     public interface OnAnimatListener {
         void OnAnimationStart();
 
@@ -69,6 +68,8 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
     }
 
     public float getAnimationValue() {
+        GLRender.CheckOnGLThread();
+        
         if (mIsRunning == false)
             return 0;
 
@@ -76,7 +77,7 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
     }
 
     public void setInterpolator(TimeInterpolator value) {
-        CheckThread();
+        GLRender.CheckOnGLThread();
         
         if (value != null) {
             mInterpolator = value;
@@ -86,7 +87,7 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
     }
 
     public void start() {
-        CheckThread();
+        GLRender.CheckOnGLThread();
         
         mIsRunning = true;
         mStartedTime = SystemClock.uptimeMillis();
@@ -101,7 +102,7 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
     }
 
     public void stop() {
-        CheckThread();
+        GLRender.CheckOnGLThread();
         
         GLRender.RequestRender(true);
         
@@ -116,7 +117,7 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
 
     @Override
     public void OnFrame(GL10 gl) {
-        CheckThread();
+        GLRender.CheckOnGLThread();
         
         if (!mIsRunning || mListener == null)
             return;

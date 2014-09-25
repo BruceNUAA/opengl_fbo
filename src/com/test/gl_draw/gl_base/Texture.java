@@ -14,7 +14,6 @@ import android.text.TextPaint;
 import android.text.TextUtils;
 
 import com.test.gl_draw.utils.GLHelper;
-import com.test.gl_draw.utils.NonThreadSafe;
 
 public class Texture extends NonThreadSafe {
 
@@ -52,11 +51,10 @@ public class Texture extends NonThreadSafe {
     }
 
     public void Init(Texture texture) {
-        CheckThread();
 
         if (this == texture)
             return;
-
+        
         Destory(mBitmap != null && !mBitmap.sameAs(texture.mBitmap));
 
         mType = texture.mType;
@@ -88,7 +86,7 @@ public class Texture extends NonThreadSafe {
     }
 
     public boolean Init(String text, int color, float text_size, float max_width, boolean is_multi_line) {
-        CheckThread();
+        BeforeThreadCall();
 
         if (text == null || text.isEmpty() || text.equals(mStringTxt))
             return false;
@@ -106,11 +104,11 @@ public class Texture extends NonThreadSafe {
         if (bitmap == null)
             return false;
 
+        AfterThreadCall();
         return Init(bitmap);
     }
 
     public boolean Init(Bitmap b) {
-        CheckThread();
 
         GL10 gl = GLRender.GL();
         if (b == null) {
@@ -120,6 +118,8 @@ public class Texture extends NonThreadSafe {
         if (isValid() && b.sameAs(mBitmap))
             return true;
 
+        BeforeThreadCall();
+        
         mType = TextureType.BITMAP;
 
         Destory(!b.sameAs(mBitmap));
@@ -153,7 +153,7 @@ public class Texture extends NonThreadSafe {
 
         if (new_w != mTextureOriginW || new_h != mTextureOriginH) {
             Bitmap resizedBitmap = resizeBitmap(b, new_w, new_h);
-
+            
             mTexture = GLHelper.loadTexture(gl, resizedBitmap);
             
             resizedBitmap.recycle();
@@ -161,20 +161,20 @@ public class Texture extends NonThreadSafe {
             mTexture = GLHelper.loadTexture(gl, b);
         }
 
-        CheckThreadError(gl);
+        AfterThreadCall();
         return GLHelper.isTexture(gl, mTexture);
     }
 
     public boolean Init(int w, int h) {
         if (w == 0 || h == 0)
             return false;
-        
-        CheckThread();
 
         GL10 gl = GLRender.GL();
         if (mTextureOriginW == w && mTextureOriginH == h && isValid())
             return true;
-
+        
+        BeforeThreadCall();
+        
         mType = TextureType.EMPTY_RECT;
 
         UnLoad();
@@ -201,6 +201,8 @@ public class Texture extends NonThreadSafe {
         mTextRectF.set(map_x, map_y, map_x + map_w, map_y + map_h);
 
         mTexture = GLHelper.createTargetTexture(gl, new_w, new_h);
+        
+        AfterThreadCall();
         return GLHelper.isTexture(gl, mTexture);
     }
 
@@ -272,15 +274,12 @@ public class Texture extends NonThreadSafe {
 
         gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture);
 
-        CheckThreadError(gl);
         return true;
     }
 
     public void unBind(GL10 gl) {
         if (isValid())
             gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
-
-        CheckThreadError(gl);
     }
 
     //
@@ -292,7 +291,9 @@ public class Texture extends NonThreadSafe {
         }
 
         try {
-            resized_b = Bitmap.createBitmap(new_w, new_h, b.getConfig());
+            // ******************* Note: ****************
+            // 在低端机上，类似RGB_565等的非整个字节的像素格式，转纹理时会非常耗时。。。
+            resized_b = Bitmap.createBitmap(new_w, new_h, Config.ARGB_8888);
 
             Canvas c = new Canvas(resized_b);
             RectF dst = new RectF((new_w - b.getWidth()) / 2.0f,

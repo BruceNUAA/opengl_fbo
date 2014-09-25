@@ -8,8 +8,8 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Color;
 import android.graphics.RectF;
 
+import com.test.gl_draw.gl_base.NonThreadSafe;
 import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.utils.NonThreadSafe;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 public class TextureDraw extends NonThreadSafe {
@@ -163,10 +163,17 @@ public class TextureDraw extends NonThreadSafe {
     public Texture getTexture() {
         return mTexture;
     }
+    
+    public int[] getTextSize() {
+        if (mTexture == null)
+            return new int[2];
+        else {
+            return mTexture.getTextSize();
+        }
+    }
 
     public void Draw(GL10 gl) {
-    	CheckThread();
-    	
+      
         if (mRenderRect.isEmpty() || !mVisible || mAlpha == 0)
             return;
         
@@ -177,6 +184,8 @@ public class TextureDraw extends NonThreadSafe {
         if (!has_texture && !has_color)
             return;
 
+        BeforeThreadCall();
+        
         if (has_texture) {
             mTexture.bind(gl);
             gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
@@ -205,7 +214,7 @@ public class TextureDraw extends NonThreadSafe {
             gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
         }
 
-        CheckThreadError(null);
+        AfterThreadCall();
     }
 
     //

@@ -1,13 +1,6 @@
 
 package com.test.gl_draw.utils;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.opengles.GL10;
-
 import android.graphics.Bitmap;
 import android.opengl.ETC1;
 import android.opengl.ETC1Util;
@@ -17,26 +10,15 @@ import android.opengl.GLES20;
 import android.opengl.GLException;
 import android.opengl.GLUtils;
 
-import com.example.gl_fbo.BuildConfig;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class GLHelper20 {
     
-    public static boolean isEGLContextOK() {
-        return !((EGL10) EGLContext.getEGL()).eglGetCurrentContext().equals(
-                EGL10.EGL_NO_CONTEXT);
-    }
-
-    public static void checkEGLContextOK() {
-        if (!BuildConfig.DEBUG)
-            return;
-
-        if (!isEGLContextOK()) {
-            throw new RuntimeException("Opengl context is not created !");
-        }
-    }
-
     public static void checkGLError() {
-        if (!BuildConfig.DEBUG)
+        if (!GLHelper.EnableGLDebug())
             return;
 
         int error = GLES20.glGetError();
@@ -68,7 +50,7 @@ public class GLHelper20 {
         int[] textures = new int[1];
         GLES20.glGenTextures(1, textures, 0);
 
-        if (textures[0] == 0) {
+        if (textures[0] == 0 && GLHelper.EnableGLDebug()) {
             throw new RuntimeException("failed to load texture");
         }
 
@@ -205,27 +187,5 @@ public class GLHelper20 {
         }, 0);
         
         GLHelper20.checkGLError();
-    }
-
-    public static boolean checkIfContextSupportsNPOT() {
-        return checkIfContextSupportsExtension("GL_OES_texture_npot");
-    }
-
-    public static boolean checkIfContextSupportsFrameBufferObject() {
-        return checkIfContextSupportsExtension("GL_OES_framebuffer_object");
-    }
-
-    /**
-     * This is not the fastest way to check for an extension, but fine if we are
-     * only checking for a few extensions each time a context is created.
-     * 
-     * @param gl
-     * @param extension
-     * @return true if the extension is present in the current context.
-     */
-    public static boolean checkIfContextSupportsExtension(String extension) {
-        String extensions = " " + GLES20.glGetString(GLES20.GL_EXTENSIONS)
-                + " ";
-        return extensions.indexOf(" " + extension + " ") >= 0;
     }
 }

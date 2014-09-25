@@ -7,8 +7,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
+import com.test.gl_draw.gl_base.NonThreadSafe;
 import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.utils.NonThreadSafe;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 //           stretch pos
@@ -117,6 +117,10 @@ public class NinePatchDraw extends NonThreadSafe {
 
 		mStretchPos = stretchPos.clone();
 		mBorder = border.clone();
+		
+		if(mTexture != null)
+		    mTexture.Destory();
+		
 		mTexture = texture;
 
 		UpdateTexture();
@@ -139,7 +143,6 @@ public class NinePatchDraw extends NonThreadSafe {
 	}
 
 	public void Draw(GL10 gl) {
-		CheckThread();
 
 		if (mTXCoordBuffer == null || mVBuffer == null || mIdexBuffer == null
 				|| mTexture == null || !mTexture.isValid())
@@ -148,6 +151,8 @@ public class NinePatchDraw extends NonThreadSafe {
 		if (!mTexture.bind(gl))
 			return;
 
+		BeforeThreadCall();
+		
 		boolean has_color = mColorBuffer != null;
 
 		if (has_color) {
@@ -168,7 +173,7 @@ public class NinePatchDraw extends NonThreadSafe {
 
 		mTexture.unBind(gl);
 
-		CheckThreadError(gl);
+		AfterThreadCall();
 	}
 
 	public void setCornerRate(float scale) {

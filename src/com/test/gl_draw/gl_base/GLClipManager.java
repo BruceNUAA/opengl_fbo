@@ -1,11 +1,9 @@
 
 package com.test.gl_draw.gl_base;
 
-import javax.microedition.khronos.opengles.GL10;
-
 import android.graphics.RectF;
 
-import com.test.gl_draw.utils.NonThreadSafe;
+import javax.microedition.khronos.opengles.GL10;
 
 public class GLClipManager extends NonThreadSafe {
 
@@ -30,7 +28,7 @@ public class GLClipManager extends NonThreadSafe {
 
     public void setScreenSize(GL10 gl, boolean render_is_frame_buffer, float offset_x, float offset_y,
             float screenW, float screenH) {
-        CheckThread();
+        BeforeThreadCall();
 
         if (screenW == 0 || screenH == 0)
             return;
@@ -45,11 +43,11 @@ public class GLClipManager extends NonThreadSafe {
         mOffsetXY[0] = offset_x;
         mOffsetXY[1] = offset_y;
         
-        CheckThreadError(gl);
+        AfterThreadCall();
     }
 
     public void ClipRect(GL10 gl, RectF rc) {
-        CheckThread();
+        BeforeThreadCall();
 
         if (rc.isEmpty())
             return;
@@ -74,14 +72,14 @@ public class GLClipManager extends NonThreadSafe {
                 (int) y,
                 (int) mClipRect.width(), (int) mClipRect.height());
         
-        CheckThreadError(gl);
+        AfterThreadCall();
     }
 
     public void DisableClip(GL10 gl) {
-        CheckThread();
+        BeforeThreadCall();
 
         gl.glDisable(GL10.GL_SCISSOR_TEST);
         
-        CheckThreadError(gl);
+        AfterThreadCall();
     }
 }

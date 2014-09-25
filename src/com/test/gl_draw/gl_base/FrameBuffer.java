@@ -9,7 +9,6 @@ import android.graphics.RectF;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.TextureDraw;
 import com.test.gl_draw.utils.GLHelper;
-import com.test.gl_draw.utils.NonThreadSafe;
 
 public class FrameBuffer extends NonThreadSafe {
 
@@ -39,8 +38,6 @@ public class FrameBuffer extends NonThreadSafe {
 
 	public void DrawToLayer(GL10 gl, float alpha) {
 
-		CheckThread();
-
 		if (!GLConfigure.getInstance().isSupportFBO(gl))
 			return;
 
@@ -49,6 +46,8 @@ public class FrameBuffer extends NonThreadSafe {
 		if (mFrameCallStackCount != 1) {
 			return;
 		}
+		
+		BeforeThreadCall();
 
 		GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
 
@@ -72,6 +71,7 @@ public class FrameBuffer extends NonThreadSafe {
 			}
 
 			if (!texture.Init((int) mRectF.width(), (int) mRectF.height())) {
+			    AfterThreadCall();
 				return;
 			} else {
 				mTextureDraw.SetTexture(texture, true);
@@ -93,16 +93,17 @@ public class FrameBuffer extends NonThreadSafe {
 
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
-		CheckThreadError(gl);
+		AfterThreadCall();
 	}
 
 	public void Restore(GL10 gl) {
-		CheckThread();
 
 		mFrameCallStackCount--;
 
 		if (mFrameCallStackCount != 0)
 			return;
+		
+		BeforeThreadCall();
 
 		GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
 
@@ -110,11 +111,11 @@ public class FrameBuffer extends NonThreadSafe {
 
 		RestoreScene(gl);
 
-		CheckThreadError(gl);
+		AfterThreadCall();
 	}
 
 	public void Destory(GL10 gl) {
-		CheckThread();
+		BeforeThreadCall();
 
 		GLHelper.deleteFrameBuffers(gl, mFramebuffer);
 
@@ -122,7 +123,7 @@ public class FrameBuffer extends NonThreadSafe {
 		
 		mFramebuffer = 0;
 
-		CheckThreadError(gl);
+		AfterThreadCall();
 	}
 
 	private void SetUpScene(GL10 gl) {
@@ -150,8 +151,6 @@ public class FrameBuffer extends NonThreadSafe {
 
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
-
-		CheckThreadError(gl);
 	}
 
 	private void RestoreScene(GL10 gl) {

@@ -7,10 +7,10 @@ import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLConfigure;
+import com.test.gl_draw.gl_base.NonThreadSafe;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.test.GLViewTest;
-import com.test.gl_draw.utils.NonThreadSafe;
 
 public class GLRootScene extends NonThreadSafe implements IScene {
     private GLView mRootView = new GLView();
@@ -22,7 +22,7 @@ public class GLRootScene extends NonThreadSafe implements IScene {
 
     @Override
     public void onSurfaceChanged(GL10 gl, int w, int h) {
-        CheckThread();
+        BeforeThreadCall(); 
 
         GLView.sRenderWidth = w;
         GLView.sRenderHeight = h;
@@ -46,20 +46,22 @@ public class GLRootScene extends NonThreadSafe implements IScene {
         GLClipManager.getInstance().setScreenSize(gl, false, 0, 0, w, h);
 
         mRootView.SetBounds(new RectF(0, 0, w, h));
-        GLViewTest.test1(mRootView);
-        CheckThreadError(gl);
+        
+        GLViewTest.test1(rootview());
+        
+        AfterThreadCall(); 
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
-        CheckThread();
+        BeforeThreadCall();
         
         gl.glLoadIdentity();
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
    
         mRootView.Draw(gl);
       
-        CheckThreadError(gl);
+        AfterThreadCall();
     }
 
     @Override
@@ -74,7 +76,7 @@ public class GLRootScene extends NonThreadSafe implements IScene {
 
     @Override
     public void setVisible(boolean visible) {
-     //  mRootView.SetVisible(visible);
+       mRootView.SetVisible(visible);
     }
 
     public GLView rootview() {

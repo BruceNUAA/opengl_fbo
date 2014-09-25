@@ -41,6 +41,10 @@ public class GLHelper {
         n++;
         return n;
     }
+    
+    public static boolean EnableGLDebug() {
+        return false;//BuildConfig.DEBUG;
+    }
 
     public static boolean isEGLContextOK() {
         return !((EGL10) EGLContext.getEGL()).eglGetCurrentContext().equals(
@@ -48,12 +52,15 @@ public class GLHelper {
     }
 
     public static void checkEGLContextOK() {
-        if (!isEGLContextOK()) {
+        if (EnableGLDebug() && !isEGLContextOK()) {
             throw new RuntimeException("Opengl context is not created !");
         }
     }
 
     public static void checkGLError(GL10 gl) {
+        if (!EnableGLDebug())
+            return;
+        
         int error = gl.glGetError();
 
         if (error != GL10.GL_NO_ERROR) {
@@ -82,7 +89,7 @@ public class GLHelper {
 
         gl.glGenTextures(1, textures, 0);
 
-        if (textures[0] == 0) {
+        if (textures[0] == 0 && EnableGLDebug()) {
             throw new RuntimeException("failed to load texture");
         }
 

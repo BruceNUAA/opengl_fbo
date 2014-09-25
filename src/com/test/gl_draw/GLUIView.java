@@ -57,6 +57,10 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     }
 
+    public GLView getGLRootView() {
+        return mRootScene.rootview();
+    }
+
     public void PostRenderRunnable(Runnable runnable) {
         queueEvent(runnable);
     }

@@ -10,7 +10,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
-import com.example.gl_fbo.BuildConfig;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.utils.GLHelper;
@@ -87,7 +86,7 @@ public class GLRender implements GLSurfaceView.Renderer {
 	}
 	
 	public static void CheckOnGLThread() {
-	    if (!BuildConfig.DEBUG)
+	    if (!GLHelper.EnableGLDebug())
 	        return;
 	    
 	    if (!IsOnGLThread())
