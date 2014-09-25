@@ -5,7 +5,7 @@ import android.graphics.RectF;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class GLClipManager extends GLThreadSafe {
+public class GLClipManager extends GLObject {
 
     private static GLClipManager sClipManager = null;
 
@@ -28,10 +28,11 @@ public class GLClipManager extends GLThreadSafe {
 
     public void setScreenSize(GL10 gl, boolean render_is_frame_buffer, float offset_x, float offset_y,
             float screenW, float screenH) {
-        BeforeThreadCall();
-
+        
         if (screenW == 0 || screenH == 0)
             return;
+        
+        BeforeThreadCall();
 
         mRenderIsFBO = render_is_frame_buffer;
 
@@ -47,10 +48,11 @@ public class GLClipManager extends GLThreadSafe {
     }
 
     public void ClipRect(GL10 gl, RectF rc) {
-        BeforeThreadCall();
-
+       
         if (rc.isEmpty())
             return;
+        
+        BeforeThreadCall();
 
         mClipRect.set(rc);
 

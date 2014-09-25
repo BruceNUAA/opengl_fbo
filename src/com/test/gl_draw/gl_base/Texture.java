@@ -15,7 +15,7 @@ import android.text.TextUtils;
 
 import com.test.gl_draw.utils.GLHelper;
 
-public class Texture extends GLThreadSafe {
+public class Texture extends GLObject {
 
     private enum TextureType {
         BITMAP,

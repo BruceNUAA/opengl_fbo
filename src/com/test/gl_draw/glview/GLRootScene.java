@@ -7,12 +7,12 @@ import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLConfigure;
-import com.test.gl_draw.gl_base.GLThreadSafe;
+import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 import com.test.gl_draw.test.GLViewTest;
 
-public class GLRootScene extends GLThreadSafe implements IScene {
+public class GLRootScene extends GLObject implements IScene {
     private GLView mRootView = new GLView();
 
     @Override

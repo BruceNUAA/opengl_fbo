@@ -10,11 +10,11 @@ import android.view.View.OnTouchListener;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLRender;
-import com.test.gl_draw.gl_base.GLThreadSafe;
+import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
 
-public class GLView extends GLThreadSafe implements IGLView {
+public class GLView extends GLObject implements IGLView {
 
     public static int sID = 0;
 

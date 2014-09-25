@@ -8,11 +8,11 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Color;
 import android.graphics.RectF;
 
-import com.test.gl_draw.gl_base.GLThreadSafe;
+import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
-public class TextureDraw extends GLThreadSafe {
+public class TextureDraw extends GLObject {
 
     public enum FillMode {
         FitXY, // 根据绘制区域拉申
