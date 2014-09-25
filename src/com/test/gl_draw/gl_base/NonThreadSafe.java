@@ -8,10 +8,10 @@ public abstract class NonThreadSafe {
 		ensureThreadIdAssigned();
 	}
 
-	abstract boolean isCheckEnable();
+	abstract boolean isDebugEnable();
 
 	public boolean BeforeThreadCall() {
-		if (!isCheckEnable())
+		if (!isDebugEnable())
 			return false;
 
 		ensureThreadIdAssigned();
@@ -23,7 +23,7 @@ public abstract class NonThreadSafe {
 	}
 
 	public boolean AfterThreadCall() {
-		return isCheckEnable();
+		return isDebugEnable();
 	}
 
 	public void detachFromThread() {
@@ -31,7 +31,7 @@ public abstract class NonThreadSafe {
 	}
 
 	private void ensureThreadIdAssigned() {
-		if (!isCheckEnable())
+		if (!isDebugEnable())
 			return;
 
 		if (this.mThread == null) {

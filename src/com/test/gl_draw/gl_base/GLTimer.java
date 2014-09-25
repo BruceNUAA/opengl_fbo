@@ -1,142 +1,149 @@
-
 package com.test.gl_draw.gl_base;
+
+import javax.microedition.khronos.opengles.GL10;
 
 import android.animation.TimeInterpolator;
 import android.os.SystemClock;
 import android.view.animation.LinearInterpolator;
 
-import junit.framework.Assert;
+public class GLTimer extends GLObject implements GLRender.IRenderFrame {
+	public interface OnAnimatListener {
+		void OnAnimationStart();
 
-import javax.microedition.khronos.opengles.GL10;
+		void OnAnimationUpdate(float last_v, float new_v);
 
-public class GLTimer implements GLRender.IRenderFrame {
-    public interface OnAnimatListener {
-        void OnAnimationStart();
+		void OnAnimationEnd();
+	}
 
-        void OnAnimationUpdate(float last_v, float new_v);
+	private float mStart;
+	private float mEnd;
+	private long mDuration;
+	private OnAnimatListener mListener;
 
-        void OnAnimationEnd();
-    }
+	private boolean mIsRunning = false;
+	private long mStartedTime;
+	private long mCurrentTime;
 
-    private float mStart;
-    private float mEnd;
-    private long mDuration;
-    private OnAnimatListener mListener;
+	private TimeInterpolator mInterpolator = null;
 
-    private boolean mIsRunning = false;
-    private long mStartedTime;
-    private long mCurrentTime;
+	public static GLTimer ValeOf(float a, float b, long duration,
+			OnAnimatListener li) {
+		GLTimer timer = new GLTimer();
 
-    private TimeInterpolator mInterpolator = null;
+		timer.mStart = a;
+		timer.mEnd = b;
+		timer.mDuration = duration;
+		timer.mListener = li;
+		timer.setInterpolator(null);
+		return timer;
+	}
 
-    public static GLTimer ValeOf(float a, float b, long duration,
-            OnAnimatListener li) {
-        GLTimer timer = new GLTimer();
+	public boolean isRunning() {
+		return mIsRunning;
+	}
 
-        timer.mStart = a;
-        timer.mEnd = b;
-        timer.mDuration = duration;
-        timer.mListener = li;
-        timer.setInterpolator(null);
-        return timer;
-    }
+	public float[] getAnimationArgs() {
+		return new float[] { mStart, mEnd, mDuration };
+	}
 
-    public boolean isRunning() {
-        return mIsRunning;
-    }
+	public void setAnimationArgs(float... args) {
+		if (args.length < 3) {
+			if (isDebugEnable()) {
+				throw new RuntimeException();
+			}
+			return;
+		}
 
-    public float[] getAnimationArgs() {
-        return new float[] {
-                mStart, mEnd, mDuration
-        };
-    }
+		mStart = args[0];
+		mEnd = args[1];
+		mDuration = (long) args[2];
+		mIsRunning = false;
+	}
 
-    public void setAnimationArgs(float[] args) {
-        Assert.assertTrue(args.length >= 3);
+	public float getAnimationPos() {
+		if (mIsRunning == false)
+			return 0;
 
-        mStart = args[0];
-        mEnd = args[1];
-        mDuration = (long) args[2];
-        mIsRunning = false;
-    }
+		return mInterpolator.getInterpolation((mCurrentTime - mStartedTime)
+				/ (float) mDuration);
+	}
 
-    public float getAnimationPos() {
-        if (mIsRunning == false)
-            return 0;
+	public float getAnimationValue() {
 
-        return mInterpolator.getInterpolation((mCurrentTime - mStartedTime) / (float) mDuration);
-    }
+		if (mIsRunning == false)
+			return 0;
 
-    public float getAnimationValue() {
-        GLRender.CheckOnGLThread();
-        
-        if (mIsRunning == false)
-            return 0;
+		return (mEnd - mStart) * getAnimationPos() + mStart;
+	}
 
-        return (mEnd - mStart) * getAnimationPos() + mStart;
-    }
+	public void setInterpolator(TimeInterpolator value) {
+		GLRender.CheckOnGLThread();
 
-    public void setInterpolator(TimeInterpolator value) {
-        GLRender.CheckOnGLThread();
-        
-        if (value != null) {
-            mInterpolator = value;
-        } else {
-            mInterpolator = new LinearInterpolator();
-        }
-    }
+		if (value != null) {
+			mInterpolator = value;
+		} else {
+			mInterpolator = new LinearInterpolator();
+		}
+	}
 
-    public void start() {
-        GLRender.CheckOnGLThread();
-        
-        mIsRunning = true;
-        mStartedTime = SystemClock.uptimeMillis();
-        mCurrentTime = mStartedTime;
-        if (mListener == null)
-            return;
-        
-        mListener.OnAnimationStart();
+	public void start() {
+		BeforeThreadCall();
 
-        GLRender.RegistFrameCallback(this);
-        GLRender.RequestRender(false);
-    }
+		mIsRunning = true;
+		mStartedTime = SystemClock.uptimeMillis();
+		mCurrentTime = mStartedTime;
+		if (mListener != null) {
+			mListener.OnAnimationStart();
 
-    public void stop() {
-        GLRender.CheckOnGLThread();
-        
-        GLRender.RequestRender(true);
-        
-        if (mListener == null)
-            return;
+			GLRender.RegistFrameCallback(this);
+			GLRender.RequestRender(false);
+		}
 
-        mIsRunning = false;
-        mListener.OnAnimationEnd();
+		AfterThreadCall();
+	}
 
-        GLRender.UnRegistFrameCallback(this);
-    }
+	public void stop() {
+		BeforeThreadCall();
 
-    @Override
-    public void OnFrame(GL10 gl) {
-        GLRender.CheckOnGLThread();
-        
-        if (!mIsRunning || mListener == null)
-            return;
+		GLRender.RequestRender(true);
 
-        long current = SystemClock.uptimeMillis();
+		if (mListener != null) {
+			mIsRunning = false;
+			mListener.OnAnimationEnd();
 
-        if (current >= mStartedTime + mDuration) {
-            stop();
-        } else {
-            float last_pos = mInterpolator.getInterpolation((mCurrentTime - mStartedTime)
-                    / (float) mDuration);
-            float new_pos = mInterpolator.getInterpolation((current - mStartedTime)
-                    / (float) mDuration);
+			GLRender.UnRegistFrameCallback(this);
+		}
 
-            last_pos = (mEnd - mStart) * last_pos + mStart;
-            new_pos =  (mEnd - mStart) * new_pos + mStart;
-            mListener.OnAnimationUpdate(last_pos, new_pos);
-        }
+		AfterThreadCall();
+	}
 
-        mCurrentTime = current;
-    }
+	@Override
+	public void OnFrame(GL10 gl) {
+
+		if (!mIsRunning || mListener == null)
+			return;
+
+		BeforeThreadCall();
+
+		long current = SystemClock.uptimeMillis();
+
+		if (current >= mStartedTime + mDuration) {
+			stop();
+		} else {
+			float last_pos = mInterpolator
+					.getInterpolation((mCurrentTime - mStartedTime)
+							/ (float) mDuration);
+			float new_pos = mInterpolator
+					.getInterpolation((current - mStartedTime)
+							/ (float) mDuration);
+
+			last_pos = (mEnd - mStart) * last_pos + mStart;
+			new_pos = (mEnd - mStart) * new_pos + mStart;
+			mListener.OnAnimationUpdate(last_pos, new_pos);
+		}
+
+		mCurrentTime = current;
+
+		AfterThreadCall();
+	}
 }
