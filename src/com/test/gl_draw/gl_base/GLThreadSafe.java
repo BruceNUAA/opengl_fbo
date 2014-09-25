@@ -5,17 +5,23 @@ import java.util.List;
 
 import com.test.gl_draw.utils.GLHelper20;
 
-public class NonThreadSafe {
+// *********** Note: 该类有二个作用：******************
+// ***********  1.确保调用线程跟使用线程是一个线程 *******
+// ***********  2.调试OPENGL操作错误 *****************
+public class GLThreadSafe {
 	private Thread mThread = null;
 
 	// 确保BeforeThreadCall和AfterThreadCall成对调用
 	private List<Integer> mCallStackTrace = new ArrayList<Integer>();
 
-	public NonThreadSafe() {
+	public GLThreadSafe() {
 		ensureThreadIdAssigned();
 	}
 
 	private void ensureThreadIdAssigned() {
+		if (!GLConfigure.getInstance().enableDebug())
+			return;
+		
 		if (this.mThread == null) {
 			this.mThread = Thread.currentThread();
 		}

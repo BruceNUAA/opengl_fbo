@@ -7,7 +7,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
-import com.test.gl_draw.gl_base.NonThreadSafe;
+import com.test.gl_draw.gl_base.GLThreadSafe;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
@@ -29,7 +29,7 @@ import com.test.gl_draw.utils.helper.BufferUtil;
 //    13--------12----10---------9
 //               ↑   ↑
 //            stratch pos
-public class NinePatchDraw extends NonThreadSafe {
+public class NinePatchDraw extends GLThreadSafe {
 	private Texture mTexture;
 
 	private FloatBuffer mTXCoordBuffer;

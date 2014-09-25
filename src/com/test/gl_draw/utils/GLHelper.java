@@ -46,7 +46,7 @@ public class GLHelper {
     }
     
     public static boolean EnableGLDebug() {
-        return BuildConfig.DEBUG;
+        return false;// BuildConfig.DEBUG;
     }
 
     public static boolean isEGLContextOK() {

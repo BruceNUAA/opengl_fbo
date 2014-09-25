@@ -10,7 +10,7 @@ import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.TextureDraw;
 import com.test.gl_draw.utils.GLHelper;
 
-public class FrameBuffer extends NonThreadSafe {
+public class FrameBuffer extends GLThreadSafe {
 
 	private TextureDraw mTextureDraw = new TextureDraw();
 

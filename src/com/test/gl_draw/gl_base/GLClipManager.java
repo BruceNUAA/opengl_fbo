@@ -5,7 +5,7 @@ import android.graphics.RectF;
 
 import javax.microedition.khronos.opengles.GL10;
 
-public class GLClipManager extends NonThreadSafe {
+public class GLClipManager extends GLThreadSafe {
 
     private static GLClipManager sClipManager = null;
 
