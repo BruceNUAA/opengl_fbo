@@ -5,7 +5,6 @@ import javax.microedition.khronos.opengles.GL11;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import android.graphics.RectF;
-import android.opengl.GLES20;
 
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.TextureDraw;
@@ -29,8 +28,6 @@ public class FrameBuffer extends NonThreadSafe {
 	public static FrameBuffer getInstance() {
 		if (sFrameBuffer == null) {
 			sFrameBuffer = new FrameBuffer();
-			sFrameBuffer.mRectF.set(0, 0, GLView.sRenderWidth,
-					GLView.sRenderHeight);
 		}
 
 		return sFrameBuffer;
@@ -44,7 +41,7 @@ public class FrameBuffer extends NonThreadSafe {
 
 		CheckThread();
 
-		if (!GLHelper.checkIfContextSupportsFrameBufferObject())
+		if (!GLConfigure.getInstance().isSupportFBO(gl))
 			return;
 
 		mFrameCallStackCount++;
@@ -56,16 +53,18 @@ public class FrameBuffer extends NonThreadSafe {
 		GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
 
 		do {
-			if (mTextureDraw.getTexture() != null
+			if (mRectF.width() == GLView.sRenderWidth &&
+			        mRectF.height() == GLView.sRenderHeight &&
+			        mTextureDraw.getTexture() != null
 					&& mTextureDraw.getTexture().isValid()
-					&& GLHelper.isFrameBuffer(gl11, mFramebuffer)) {
+					&& GLHelper.isFrameBuffer(gl, mFramebuffer)) {
 				break;
 			}
 
+			 mRectF.set(0, 0, GLView.sRenderWidth,
+	                    GLView.sRenderHeight);
+			 
 			Destory(gl);
-
-			mTextureDraw.SetRenderRect(new RectF(0, 0, GLView.sRenderWidth,
-					GLView.sRenderHeight));
 
 			Texture texture = mTextureDraw.getTexture();
 			if (texture == null) {
@@ -75,8 +74,11 @@ public class FrameBuffer extends NonThreadSafe {
 			if (!texture.Init((int) mRectF.width(), (int) mRectF.height())) {
 				return;
 			} else {
-				mTextureDraw.SetTexture(texture, false);
+				mTextureDraw.SetTexture(texture, true);
 			}
+
+            mTextureDraw.SetRenderRect(new RectF(0, 0, GLView.sRenderWidth,
+                    GLView.sRenderHeight));
 
 			mFramebuffer = GLHelper.createFrameBuffer(gl,
 					texture.getRealSize(), texture.getTexture());
@@ -91,7 +93,7 @@ public class FrameBuffer extends NonThreadSafe {
 
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
-		CheckThreadError();
+		CheckThreadError(gl);
 	}
 
 	public void Restore(GL10 gl) {
@@ -108,7 +110,7 @@ public class FrameBuffer extends NonThreadSafe {
 
 		RestoreScene(gl);
 
-		CheckThreadError();
+		CheckThreadError(gl);
 	}
 
 	public void Destory(GL10 gl) {
@@ -116,21 +118,25 @@ public class FrameBuffer extends NonThreadSafe {
 
 		GLHelper.deleteFrameBuffers(gl, mFramebuffer);
 
+		mTextureDraw.DetachFromView();
+		
 		mFramebuffer = 0;
 
-		CheckThreadError();
+		CheckThreadError(gl);
 	}
 
 	private void SetUpScene(GL10 gl) {
-		GLES20.glGetFloatv(GL11.GL_PROJECTION_MATRIX, mPVMatrix, 0);
-		GLES20.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mPVMatrix, 16);
+	    GL11 gl11 = (GL11)gl;
+	    
+	    gl11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, mPVMatrix, 0);
+	    gl11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mPVMatrix, 16);
 
 		int[] texture_size = mTextureDraw.getTexture().getRealSize();
 
 		float offset_x = (texture_size[0] - GLView.sRenderWidth) / 2.0f;
 		float offset_y = (texture_size[1] - GLView.sRenderHeight) / 2.0f;
 
-		GLClipManager.getInstance().setScreenSize(true, offset_x, offset_y,
+		GLClipManager.getInstance().setScreenSize(gl, true, offset_x, offset_y,
 				texture_size[0], texture_size[1]);
 
 		gl.glViewport(
@@ -145,14 +151,14 @@ public class FrameBuffer extends NonThreadSafe {
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 
-		CheckThreadError();
+		CheckThreadError(gl);
 	}
 
 	private void RestoreScene(GL10 gl) {
 
 		gl.glViewport(0, 0, GLView.sRenderWidth, GLView.sRenderHeight);
 
-		GLClipManager.getInstance().setScreenSize(false, 0, 0,
+		GLClipManager.getInstance().setScreenSize(gl, false, 0, 0,
 				GLView.sRenderWidth, GLView.sRenderHeight);
 
 		gl.glMatrixMode(GL10.GL_PROJECTION);

@@ -4,7 +4,6 @@ import javax.microedition.khronos.opengles.GL10;
 import javax.microedition.khronos.opengles.GL11;
 
 import android.graphics.RectF;
-import android.opengl.GLES20;
 
 import com.test.gl_draw.gl_base.GLClipManager;
 
@@ -49,19 +48,10 @@ public class GLRotateView extends GLTextureView {
 		mOrigin[0] = orgin[0];
 		mOrigin[1] = orgin[1];
 	}
-
-	public float calcDegree() {
-		return (float) (Math
-				.asin((Bounds().centerX() - GLView.sRenderWidth / 2)
-						/ mRotateOrigin[1])
-				/ Math.PI * 180 * 2);
-	}
-
+	
 	@Override
 	public void SetBounds(RectF rc) {
 		super.SetBounds(rc);
-
-		setRotateDegree(calcDegree());
 
 		getDraw().SetRenderRect(rc);
 		getBackgoundDraw().SetRenderRect(rc);
@@ -96,7 +86,8 @@ public class GLRotateView extends GLTextureView {
 		gl.glTranslatef(mOrigin[0] - mRotateOrigin[0], mOrigin[1]
 				- mRotateOrigin[1], 0);
 
-		GLES20.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mGLMatrix, 0);
+		GL11 gl11 = (GL11)gl;
+		gl11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mGLMatrix, 0);
 
 		mDrawInRotateModeC++;
 	}
@@ -119,11 +110,11 @@ public class GLRotateView extends GLTextureView {
 
 		RectF r = Parent().ClipBoundForChildren();
 
-		GLClipManager.getInstance().ClipRect(r);
+		GLClipManager.getInstance().ClipRect(gl, r);
 	}
 
 	public void restoreDrawClipBound(GL10 gl) {
-		GLClipManager.getInstance().DisableClip();
+		GLClipManager.getInstance().DisableClip(gl);
 		gl.glPopMatrix();
 	}
 

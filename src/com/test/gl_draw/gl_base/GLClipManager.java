@@ -1,8 +1,9 @@
 
 package com.test.gl_draw.gl_base;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import android.graphics.RectF;
-import android.opengl.GLES20;
 
 import com.test.gl_draw.utils.NonThreadSafe;
 
@@ -27,7 +28,7 @@ public class GLClipManager extends NonThreadSafe {
 
     }
 
-    public void setScreenSize(boolean render_is_frame_buffer, float offset_x, float offset_y,
+    public void setScreenSize(GL10 gl, boolean render_is_frame_buffer, float offset_x, float offset_y,
             float screenW, float screenH) {
         CheckThread();
 
@@ -36,16 +37,18 @@ public class GLClipManager extends NonThreadSafe {
 
         mRenderIsFBO = render_is_frame_buffer;
 
-        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+        gl.glDisable(GL10.GL_SCISSOR_TEST);
 
         mAttachScreenSize[0] = screenW;
         mAttachScreenSize[1] = screenH;
 
         mOffsetXY[0] = offset_x;
         mOffsetXY[1] = offset_y;
+        
+        CheckThreadError(gl);
     }
 
-    public void ClipRect(RectF rc) {
+    public void ClipRect(GL10 gl, RectF rc) {
         CheckThread();
 
         if (rc.isEmpty())
@@ -53,7 +56,7 @@ public class GLClipManager extends NonThreadSafe {
 
         mClipRect.set(rc);
 
-        GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
+        gl.glEnable(GL10.GL_SCISSOR_TEST);
 
         float x, y;
         
@@ -66,16 +69,19 @@ public class GLClipManager extends NonThreadSafe {
                     - mClipRect.bottom - mOffsetXY[1];
         }
 
-        GLES20.glScissor(
+        gl.glScissor(
                 (int) x,
                 (int) y,
                 (int) mClipRect.width(), (int) mClipRect.height());
-
+        
+        CheckThreadError(gl);
     }
 
-    public void DisableClip() {
+    public void DisableClip(GL10 gl) {
         CheckThread();
 
-        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
+        gl.glDisable(GL10.GL_SCISSOR_TEST);
+        
+        CheckThreadError(gl);
     }
 }

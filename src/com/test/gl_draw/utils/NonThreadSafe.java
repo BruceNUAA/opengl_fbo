@@ -1,6 +1,8 @@
 
 package com.test.gl_draw.utils;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import com.example.gl_fbo.BuildConfig;
 
 public class NonThreadSafe {
@@ -26,11 +28,14 @@ public class NonThreadSafe {
         }
     }
     
-    public void CheckThreadError() {
+    public void CheckThreadError(GL10 gl) {
     	if (!BuildConfig.DEBUG)
     		return;
-    	
-    	GLHelper.checkGLError();
+    	if (gl == null) {
+    	    GLHelper20.checkGLError();
+    	} else {
+    	    GLHelper.checkGLError(gl);
+    	}
     }
 
     public void detachFromThread() {

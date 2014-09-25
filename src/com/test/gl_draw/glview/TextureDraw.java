@@ -31,6 +31,8 @@ public class TextureDraw extends NonThreadSafe {
     private FloatBuffer mColorBuffer;
 
     private boolean mVisible = true;
+    
+    private float mAlpha = 1;
 
     private RectF mTextureVisibleRectF = new RectF();
 
@@ -47,9 +49,9 @@ public class TextureDraw extends NonThreadSafe {
     }
 
     public void SetAlpha(float alpha) {
-        alpha = Math.max(0, Math.min(1, alpha));
+        mAlpha = Math.max(0, Math.min(1, alpha));
 
-        int alpha_i = (int) (255 * alpha + 0.5);
+        int alpha_i = (int) (255 * mAlpha + 0.5);
 
         if (mColor == null) {
             mColor = new int[] {
@@ -165,7 +167,7 @@ public class TextureDraw extends NonThreadSafe {
     public void Draw(GL10 gl) {
     	CheckThread();
     	
-        if (mRenderRect.isEmpty() || !mVisible)
+        if (mRenderRect.isEmpty() || !mVisible || mAlpha == 0)
             return;
         
         boolean has_texture = mTexture != null && mTexture.ReloadIfNeed();
@@ -176,7 +178,7 @@ public class TextureDraw extends NonThreadSafe {
             return;
 
         if (has_texture) {
-            mTexture.bind();
+            mTexture.bind(gl);
             gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
         } else {
             gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
@@ -194,7 +196,7 @@ public class TextureDraw extends NonThreadSafe {
 
         //
         if (has_texture) {
-            mTexture.unBind();
+            mTexture.unBind(gl);
         } else {
             gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
         }
@@ -203,7 +205,7 @@ public class TextureDraw extends NonThreadSafe {
             gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
         }
 
-        CheckThreadError();
+        CheckThreadError(null);
     }
 
     //

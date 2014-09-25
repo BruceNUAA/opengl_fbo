@@ -1,16 +1,17 @@
 
 package com.test.gl_draw.gl_base;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.opengl.GLES20;
+import android.text.Layout.Alignment;
+import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.test.gl_draw.utils.GLHelper;
 import com.test.gl_draw.utils.NonThreadSafe;
@@ -73,20 +74,34 @@ public class Texture extends NonThreadSafe {
 
         mRealSize = texture.mRealSize.clone();
     }
-
-    public boolean Init(String text, boolean force, float text_size) {
-        return Init(text, force, text_size, 0);
+    
+    public boolean Init(String text, int color, float text_size) {
+        return Init(text, color, text_size, 0, false);
     }
 
-    public boolean Init(String text, boolean force, float text_size, float max_width) {
+    public boolean Init(String text, int color, float text_size, boolean is_multi_line) {
+        return Init(text, color, text_size, 0, is_multi_line);
+    }
+    
+    public boolean Init(String text, int color, float text_size, float max_width) {
+        return Init(text, color, text_size, max_width, false);
+    }
+
+    public boolean Init(String text, int color, float text_size, float max_width, boolean is_multi_line) {
         CheckThread();
 
         if (text == null || text.isEmpty() || text.equals(mStringTxt))
             return false;
 
         mStringTxt = new String(text);
-
-        Bitmap bitmap = textToString(mStringTxt, max_width, text_size);
+        
+        Bitmap bitmap = null;
+        
+        if (is_multi_line) {
+            bitmap = multiLineTextToBitmap(mStringTxt, color, max_width, text_size);
+        } else {
+            bitmap = singleLineTextToString(mStringTxt, color, max_width, text_size);
+        }
 
         if (bitmap == null)
             return false;
@@ -97,6 +112,7 @@ public class Texture extends NonThreadSafe {
     public boolean Init(Bitmap b) {
         CheckThread();
 
+        GL10 gl = GLRender.GL();
         if (b == null) {
             return false;
         }
@@ -105,9 +121,9 @@ public class Texture extends NonThreadSafe {
             return true;
 
         mType = TextureType.BITMAP;
-        
+
         Destory(!b.sameAs(mBitmap));
-        
+
         mBitmap = b;
 
         mTryCount = sMaxTryCound;
@@ -118,9 +134,9 @@ public class Texture extends NonThreadSafe {
         int new_w = mTextureOriginW;
         int new_h = mTextureOriginH;
 
-        if (!GLHelper.checkIfContextSupportsNPOT()) {
-            new_w = (int) GLHelper.cellPowerOf2(mTextureOriginW);
-            new_h = (int) GLHelper.cellPowerOf2(mTextureOriginH);
+        if (!GLConfigure.getInstance().isSupportNPOT(gl)) {
+            new_w = 512;// (int) GLHelper.cellPowerOf2(mTextureOriginW);
+            new_h = 512;//(int) GLHelper.cellPowerOf2(mTextureOriginH);
         }
 
         mRealSize[0] = new_w;
@@ -138,20 +154,24 @@ public class Texture extends NonThreadSafe {
         if (new_w != mTextureOriginW || new_h != mTextureOriginH) {
             Bitmap resizedBitmap = resizeBitmap(b, new_w, new_h);
 
-            mTexture = GLHelper.loadTexture(resizedBitmap);
-
+            mTexture = GLHelper.loadTexture(gl, resizedBitmap);
+            
             resizedBitmap.recycle();
         } else {
-            mTexture = GLHelper.loadTexture(b);
+            mTexture = GLHelper.loadTexture(gl, b);
         }
 
-        CheckThreadError();
-        return GLHelper.isTexture(mTexture);
+        CheckThreadError(gl);
+        return GLHelper.isTexture(gl, mTexture);
     }
 
     public boolean Init(int w, int h) {
+        if (w == 0 || h == 0)
+            return false;
+        
         CheckThread();
 
+        GL10 gl = GLRender.GL();
         if (mTextureOriginW == w && mTextureOriginH == h && isValid())
             return true;
 
@@ -165,7 +185,7 @@ public class Texture extends NonThreadSafe {
         int new_w = mTextureOriginW;
         int new_h = mTextureOriginH;
 
-        if (!GLHelper.checkIfContextSupportsNPOT()) {
+        if (!GLConfigure.getInstance().isSupportNPOT(gl)) {
             new_w = (int) GLHelper.cellPowerOf2(mTextureOriginW);
             new_h = (int) GLHelper.cellPowerOf2(mTextureOriginH);
         }
@@ -180,8 +200,8 @@ public class Texture extends NonThreadSafe {
 
         mTextRectF.set(map_x, map_y, map_x + map_w, map_y + map_h);
 
-        mTexture = GLHelper.createTargetTexture(new_w, new_h);
-        return GLHelper.isTexture(mTexture);
+        mTexture = GLHelper.createTargetTexture(gl, new_w, new_h);
+        return GLHelper.isTexture(gl, mTexture);
     }
 
     public boolean isValid() {
@@ -189,14 +209,13 @@ public class Texture extends NonThreadSafe {
                 || mTextureOriginH == 0) {
             return false;
         }
-        return GLHelper.isTexture(mTexture);
+        return GLHelper.isTexture(GLRender.GL(), mTexture);
     }
 
     public void UnLoad() {
-        GLHelper.checkEGLContextOK();
 
-        if (mTexture != 0 && GLHelper.isTexture(mTexture)) {
-            GLHelper.deleteTargetTexture(mTexture);
+        if (mTexture != 0 && GLHelper.isTexture(GLRender.GL(), mTexture)) {
+            GLHelper.deleteTargetTexture(GLRender.GL(), mTexture);
             mTexture = 0;
         }
     }
@@ -237,33 +256,31 @@ public class Texture extends NonThreadSafe {
         if (!isValid() && mTryCount-- > 0) {
             if (mType == TextureType.BITMAP && mBitmap != null) {
                 Init(mBitmap);
-            } else {
+            } else if (mType == TextureType.EMPTY_RECT) {
                 Init(mTextureOriginW, mTextureOriginH);
             }
-
-            Log.e("Texture", "try load - error:" + mTryCount + " | " + isValid());
         }
 
         return isValid();
     }
 
-    public boolean bind() {
+    public boolean bind(GL10 gl) {
 
         if (!ReloadIfNeed()) {
             return false;
         }
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture);
 
-        CheckThreadError();
+        CheckThreadError(gl);
         return true;
     }
 
-    public void unBind() {
+    public void unBind(GL10 gl) {
         if (isValid())
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+            gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
 
-        CheckThreadError();
+        CheckThreadError(gl);
     }
 
     //
@@ -275,7 +292,7 @@ public class Texture extends NonThreadSafe {
         }
 
         try {
-            resized_b = Bitmap.createBitmap(new_w, new_h, Config.ARGB_4444);
+            resized_b = Bitmap.createBitmap(new_w, new_h, b.getConfig());
 
             Canvas c = new Canvas(resized_b);
             RectF dst = new RectF((new_w - b.getWidth()) / 2.0f,
@@ -293,12 +310,13 @@ public class Texture extends NonThreadSafe {
         return resized_b;
     }
 
-    private Bitmap textToString(String text, float max_width, float text_size) {
+    private Bitmap singleLineTextToString(String text, int color, float max_width, float text_size) {
         Bitmap bitmap = null;
         try {
             TextPaint textPaint = new TextPaint();
-            textPaint.setColor(Color.WHITE);
+            textPaint.setColor(color);
             textPaint.setAntiAlias(true);
+            textPaint.setSubpixelText(true);
             textPaint.setTextSize(text_size);// 设置字体大小
 
             String new_text = text;
@@ -324,5 +342,34 @@ public class Texture extends NonThreadSafe {
         }
         return bitmap;
 
+    }
+    
+    private Bitmap multiLineTextToBitmap(String text, int color, float max_width, float text_size) {
+        Bitmap bitmap = null;
+        try {
+            TextPaint textPaint = new TextPaint();
+            textPaint.setColor(color);
+            textPaint.setAntiAlias(true);
+            textPaint.setSubpixelText(true);
+            textPaint.setTextSize(text_size);// 设置字体大小
+
+            if (max_width == 0) {
+                max_width = textPaint.measureText(text);
+            }
+
+            StaticLayout layout = new
+                    StaticLayout(text, textPaint, (int) max_width, Alignment.ALIGN_CENTER, 1.0F,
+                            0.0F, true);
+
+            bitmap = Bitmap.createBitmap(layout.getWidth(), layout.getHeight(),
+                    Config.ARGB_8888);
+            Canvas c = new Canvas(bitmap);
+            layout.draw(c);
+
+        } catch (Exception e) {
+        } catch (Error e) {
+        }
+        
+        return bitmap;
     }
 }

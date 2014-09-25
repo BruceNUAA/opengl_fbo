@@ -10,8 +10,10 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.gl_fbo.BuildConfig;
 import com.test.gl_draw.igl_draw.IScene;
 import com.test.gl_draw.igl_draw.ITouchEvent;
+import com.test.gl_draw.utils.GLHelper;
 
 public class GLRender implements GLSurfaceView.Renderer {
 
@@ -83,6 +85,21 @@ public class GLRender implements GLSurfaceView.Renderer {
 
 		return Thread.currentThread() == sRender.mGLThread;
 	}
+	
+	public static void CheckOnGLThread() {
+	    if (!BuildConfig.DEBUG)
+	        return;
+	    
+	    if (!IsOnGLThread())
+	        throw new RuntimeException();
+	}
+	
+	public static void setRenderVisible(boolean visible) {
+	    if (!isRenderOK())
+            return;
+	    
+	    sRender.mMainScene.setVisible(visible);
+	}
 
 	// }
 
@@ -121,19 +138,12 @@ public class GLRender implements GLSurfaceView.Renderer {
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		mGl = gl;
 		sRender = this;
 		mMainScene.onSurfaceCreated(gl);
 
 		mGLThread = Thread.currentThread();
 
-		mMainUIHandler.post(new Runnable() {
-
-			@Override
-			public void run() {
-				mIRenderMsg.onSurfaceCreated();
-			}
-		});
+		mIRenderMsg.onSurfaceCreated();
 
 	}
 
@@ -142,30 +152,27 @@ public class GLRender implements GLSurfaceView.Renderer {
 		mGl = gl;
 
 		mMainScene.onSurfaceChanged(gl, w, h);
-
-		mMainUIHandler.post(new Runnable() {
-
-			@Override
-			public void run() {
-				mIRenderMsg.onSurfaceChanged(w, h);
-			}
-		});
+		
+		mIRenderMsg.onSurfaceChanged(w, h);
 
 	}
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
+	 
 		for (IRenderFrame iframe : mRenderFameCallBack)
 			iframe.OnFrame(gl);
-
+   
 		mMainScene.onDrawFrame(gl);
+		
+		GLHelper.checkGLError(gl);
 	}
 
 	public void destory() {
 		mMainScene.onDestory();
 		mRenderFameCallBack.clear();
 		GLRender.sRender = null;
-
+		GLHelper.checkGLError(null);
 		mGLThread = null;
 	}
 }

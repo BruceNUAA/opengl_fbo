@@ -3,6 +3,7 @@ package com.test.gl_draw.test;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.RectF;
 
 import com.example.gl_fbo.R;
@@ -150,7 +151,7 @@ public class GLViewTest {
 
 		GLTextureView view2 = new GLTextureView();
 		texture = new Texture();
-		texture.Init("ID = " + view2.id(), false, 50);
+		texture.Init("ID = " + view2.id(), Color.RED, 50);
 		view2.SetTexture(texture, true);
 		view2.setOnTouchLisener(touch);
 		view2.SetBounds(new RectF(30.0f, 15, 300.0f, 500.0f));
@@ -159,7 +160,7 @@ public class GLViewTest {
 
 		GLTextureView view3 = new GLTextureView();
 		texture = new Texture();
-		texture.Init("ID = " + view3.id(), false, 50);
+		texture.Init("ID = " + view3.id(), Color.RED, 50);
 		view3.SetTexture(texture, true);
 		view3.setOnTouchLisener(touch);
 		view3.SetBounds(new RectF(00.0f, 0, 300.0f, 200.0f));
@@ -168,7 +169,7 @@ public class GLViewTest {
 
 		GLTextureView view4 = new GLTextureView();
 		texture = new Texture();
-		texture.Init("ID = " + view4.id(), false, 50);
+		texture.Init("ID = " + view4.id(), Color.RED, 50);
 		view4.SetTexture(texture, true);
 		view4.setOnTouchLisener(touch);
 		view4.SetBounds(new RectF(30.0f, 150, 300.0f, 500.0f));

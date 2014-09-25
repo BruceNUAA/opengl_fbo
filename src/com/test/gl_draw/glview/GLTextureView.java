@@ -25,11 +25,26 @@ public class GLTextureView extends GLView {
 		return mDraw;
 	}
 
+	  @Override
+	    public float[] getPreferSize() {
+	      if (mDraw == null || mDraw.getTexture() == null) {
+	          return super.getPreferSize();
+	      } else {
+	          int[] size = mDraw.getTexture().getTextSize();
+	          return new float[] {size[0], size[1]};
+	      }
+	  }
+	  
 	@Override
 	public void SetBounds(RectF rc) {
 		super.SetBounds(rc);
-		mDraw.SetRenderRect(new RectF());
+		mDraw.SetRenderRect(rc);
 	}
+	
+	@Override
+    public void SetAlpha(float alpha) {
+	    mDraw.SetAlpha(alpha);
+    }
 
 	@Override
 	public void OnDraw(GL10 gl) {

@@ -4,20 +4,17 @@ package com.test.gl_draw;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLDisplay;
-
-import junit.framework.Assert;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
-import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.test.gl_draw.gl_base.GLConfigure;
+import com.test.gl_draw.gl_base.GLLogWrapper;
 import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.MultisampleConfigChooser;
 import com.test.gl_draw.glview.GLRootScene;
@@ -50,6 +47,8 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
     public GLUIView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        sMultiWindowView = this;
+        
         configureSurface(context);
 
         setOnTouchListener(this);
@@ -197,21 +196,16 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     @Override
     public void onSurfaceCreated() {
-        sMultiWindowView = this;
-        Assert.assertTrue(Looper.getMainLooper().getThread() == Thread
-                .currentThread());
-
-        for (Runnable r : mRendeInitEvent) {
-            queueEvent(r);
-        }
-
-        mRendeInitEvent.clear();
+    	GLRender.CheckOnGLThread();
     }
 
     @Override
     public void onSurfaceChanged(int w, int h) {
-        Assert.assertTrue(Looper.getMainLooper().getThread() == Thread
-                .currentThread());
+        for (Runnable r : mRendeInitEvent) {
+            r.run(); 
+         }
+
+         mRendeInitEvent.clear();
     }
 
     @Override
@@ -225,71 +219,43 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         requestRender();
     }
 
-    private boolean isOnGLThread() {
-        return GLRender.IsOnGLThread();
-    }
-
-    private void doGLTask(final Runnable r) {
+    public void doGLTask(final Runnable r) {
         if (r == null)
             return;
 
-        if (isOnGLThread()) {
-            r.run();
-        } else {
+        if (!GLRender.IsOnGLThread()) {
             if (!GLRender.isRenderOK() && !mRendeInitEvent.contains(r)) {
                 mRendeInitEvent.add(r);
             } else {
                 queueEvent(r);
             }
+        } else {
+            r.run();
         }
     }
 
     private void configureSurface(Context context) {
         mGestureDector = new GestureDetector(context, this);
         mRender = new GLRender(this, mRootScene);
- 
-        if (true) {
-            setEGLConfigChooser(new MultisampleConfigChooser());
-        } else {
-            setEGLConfigChooser(new EGLConfigChooser() {
-                @Override
-                public EGLConfig chooseConfig(EGL10 egl, EGLDisplay display) {
-                    
-                    int[] attrList = new int[] {
-                            //
-                            EGL10.EGL_SURFACE_TYPE, EGL10.EGL_WINDOW_BIT, //
-                            EGL10.EGL_DEPTH_SIZE, 0, //
-                            EGL10.EGL_BUFFER_SIZE, 0,//
-                            EGL10.EGL_SAMPLE_BUFFERS, 1,//
-                           EGL10.EGL_SAMPLES, 4, //
-                            EGL10.EGL_NONE
-                            //
-                    };
 
-                    EGLConfig[] configOut = new EGLConfig[1];
-                    int[] configNumOut = new int[1];
-                    egl.eglChooseConfig(display, attrList, configOut, 1,
-                            configNumOut);
+        setEGLConfigChooser(new MultisampleConfigChooser());
 
-                    return configOut[0];
-                }
-            });
+        setGLWrapper(new GLLogWrapper(
+                GLConfigure.getInstance().enableGLCallLog(), 
+                GLConfigure.getInstance().enableGLErrorCheck()));
 
-        }
-       
         setRenderer(mRender);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
         setPreserveEGLContextOnPause(true);
-        setZOrderOnTop(true);
     }
 
     private void postGLViewInitTask() {
         final GLView rootView = mRootScene.rootview();
         rootView.detachFromThread();
         mRootScene.detachFromThread();
-        
+
         Runnable gl_init_task = new Runnable() {
             public void run() {
 

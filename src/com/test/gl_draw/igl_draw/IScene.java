@@ -12,6 +12,8 @@ public interface IScene {
     void onDrawFrame(GL10 gl);
     
     void onDestory();
+    
+    void setVisible(boolean visible);
 
     ITouchEvent getEventHandle();
 }

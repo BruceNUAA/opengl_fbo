@@ -5,7 +5,6 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
-import android.R.integer;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.Texture;
@@ -146,7 +145,7 @@ public class NinePatchDraw extends NonThreadSafe {
 				|| mTexture == null || !mTexture.isValid())
 			return;
 
-		if (!mTexture.bind())
+		if (!mTexture.bind(gl))
 			return;
 
 		boolean has_color = mColorBuffer != null;
@@ -167,9 +166,9 @@ public class NinePatchDraw extends NonThreadSafe {
 			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
 		}
 
-		mTexture.unBind();
+		mTexture.unBind(gl);
 
-		CheckThreadError();
+		CheckThreadError(gl);
 	}
 
 	public void setCornerRate(float scale) {

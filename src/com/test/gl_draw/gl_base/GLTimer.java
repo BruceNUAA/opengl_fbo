@@ -93,6 +93,8 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
         mCurrentTime = mStartedTime;
         if (mListener == null)
             return;
+        
+        mListener.OnAnimationStart();
 
         GLRender.RegistFrameCallback(this);
         GLRender.RequestRender(false);
@@ -121,13 +123,9 @@ public class GLTimer extends NonThreadSafe implements GLRender.IRenderFrame {
 
         long current = SystemClock.uptimeMillis();
 
-        if (current > mStartedTime + mDuration) {
+        if (current >= mStartedTime + mDuration) {
             stop();
         } else {
-            if (mCurrentTime == mStartedTime) {
-                mListener.OnAnimationStart();
-            }
-
             float last_pos = mInterpolator.getInterpolation((mCurrentTime - mStartedTime)
                     / (float) mDuration);
             float new_pos = mInterpolator.getInterpolation((current - mStartedTime)

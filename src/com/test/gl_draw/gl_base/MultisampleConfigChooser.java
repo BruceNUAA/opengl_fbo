@@ -1,10 +1,10 @@
 package com.test.gl_draw.gl_base;
 
+import android.opengl.GLSurfaceView.EGLConfigChooser;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLDisplay;
-
-import android.opengl.GLSurfaceView.EGLConfigChooser;
 
 
 public class MultisampleConfigChooser implements EGLConfigChooser {

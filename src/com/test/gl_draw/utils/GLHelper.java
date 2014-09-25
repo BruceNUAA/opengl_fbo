@@ -11,16 +11,25 @@ import javax.microedition.khronos.opengles.GL11;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.opengl.ETC1;
 import android.opengl.ETC1Util;
 import android.opengl.ETC1Util.ETC1Texture;
 import android.opengl.GLES10;
-import android.opengl.GLES20;
+import android.opengl.GLException;
 import android.opengl.GLUtils;
 
-import com.example.gl_fbo.BuildConfig;
-
 public class GLHelper {
+
+    public static int ColorBetween(int color_a, int color_b, float alpha) {
+        alpha = Math.max(0, Math.min(1, alpha));
+
+        int a = (int) (Color.alpha(color_a) * alpha + Color.alpha(color_b) * (1 - alpha));
+        int r = (int) (Color.red(color_a) * alpha + Color.red(color_b) * (1 - alpha));
+        int g = (int) (Color.green(color_a) * alpha + Color.green(color_b) * (1 - alpha));
+        int b = (int) (Color.blue(color_a) * alpha + Color.blue(color_b) * (1 - alpha));
+        return Color.argb(a, r, g, b);
+    }
 
     public static long cellPowerOf2(long n) {
         n--;
@@ -39,66 +48,76 @@ public class GLHelper {
     }
 
     public static void checkEGLContextOK() {
-        if (!BuildConfig.DEBUG)
-            return;
-
         if (!isEGLContextOK()) {
             throw new RuntimeException("Opengl context is not created !");
         }
     }
 
-    public static void checkGLError() {
-        if (!BuildConfig.DEBUG)
-            return;
+    public static void checkGLError(GL10 gl) {
+        int error = gl.glGetError();
 
-        int error = GLES20.glGetError();
-        if (error != GLES20.GL_NO_ERROR) {
-            throw new RuntimeException("GLError 0x"
-                    + Integer.toHexString(error));
+        if (error != GL10.GL_NO_ERROR) {
+            throw new GLException(error);
         }
     }
 
-    public static boolean isTexture(int texture) {
-        return texture != 0 && GLES20.glIsTexture(texture);
+    public static boolean isTexture(GL10 gl, int texture) {
+        GL11 gl11 = (GL11) gl;
+        boolean hr = texture != 0 && gl11.glIsTexture(texture);
+        checkGLError(gl);
+        return hr;
     }
 
-    public static boolean isFrameBuffer(int framebuffer) {
-        return framebuffer != 0 && GLES20.glIsFramebuffer(framebuffer);
+    public static boolean isFrameBuffer(GL10 gl, int framebuffer) {
+        GL11ExtensionPack glexp = (GL11ExtensionPack) gl;
+        return framebuffer != 0 && glexp.glIsFramebufferOES(framebuffer);
     }
 
-    public static boolean isFrameBuffer(GL11ExtensionPack gl11, int framebuffer) {
-        return framebuffer != 0 && gl11.glIsFramebufferOES(framebuffer);
-    }
+    public static int loadTexture(GL10 gl, Bitmap bitmap) {
 
-    public static int getTextureMaxSize() {
-        int[] max = new int[1];
-        GLES20.glGetIntegerv(GLES20.GL_MAX_TEXTURE_SIZE, max, 0);
-        return max[0];
-    }
+        if (bitmap == null || bitmap.isRecycled())
+            return 0;
 
-    public static int loadTexture(Bitmap bitmap) {
-        final int[] textures = new int[1];
-        GLES20.glGenTextures(1, textures, 0);
+        int[] textures = new int[2];
+
+        gl.glGenTextures(1, textures, 0);
 
         if (textures[0] == 0) {
             throw new RuntimeException("failed to load texture");
         }
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
         // inside antialias
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
 
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_REPEAT);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_REPEAT);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+                GL10.GL_REPEAT);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+                GL10.GL_REPEAT);
+
+        int pixel_byte = 0;
+
+        switch (bitmap.getConfig()) {
+            case ALPHA_8:
+                pixel_byte = 1;
+                break;
+            case RGB_565:
+            case ARGB_4444:
+                pixel_byte = 2;
+                break;
+            case ARGB_8888:
+                pixel_byte = 4;
+                break;
+        }
+
+        gl.glPixelStorei(GL10.GL_UNPACK_ALIGNMENT, pixel_byte);
 
         if (!ETC1Util.isETC1Supported() || bitmap.hasAlpha()) {
-            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+            GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
         } else {
             bitmap = bitmap.copy(Bitmap.Config.RGB_565, true);
             int bpp = 2;
@@ -121,82 +140,14 @@ public class GLHelper {
                     GLES10.GL_UNSIGNED_SHORT_5_6_5, etc1tex);
         }
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-        checkGLError();
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+
+        checkGLError(gl);
         return textures[0];
     }
 
-    public static int createTargetTexture(int width, int height) {
-
-        int[] textures = new int[1];
-        GLES20.glGenTextures(1, textures, 0);
-
-        if (textures[0] == 0) {
-            throw new RuntimeException("failed to load texture");
-        }
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width,
-                height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
-
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-                GLES20.GL_REPEAT);
-        GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-                GLES20.GL_REPEAT);
-        checkGLError();
-        return textures[0];
-    }
-
-    public static void deleteTargetTexture(int... texture) {
-        GLES20.glDeleteTextures(texture.length, texture, 0);
-    }
-
-    public static int createFrameBuffer(int[] size, int targetTextureId) {
-        int[] fb = new int[1];
-        int[] depthRb = new int[1];
-        GLHelper.checkGLError();
-        // generate
-        GLES20.glGenFramebuffers(1, fb, 0);
-        GLES20.glGenRenderbuffers(1, depthRb, 0);
-
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fb[0]);
-        GLES20.glBindRenderbuffer(GLES20.GL_RENDERBUFFER, depthRb[0]);
-
-        GLES20.glRenderbufferStorage(GLES20.GL_RENDERBUFFER,
-                GLES20.GL_DEPTH_COMPONENT16, size[0], size[1]);
-
-        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
-                GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D,
-                targetTextureId, 0);
-        int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
-
-        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            throw new RuntimeException("Framebuffer is not complete: "
-                    + Integer.toHexString(status));
-        }
-
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-        GLHelper.checkGLError();
-        return fb[0];
-    }
-
-    public static void deleteFrameBuffers(int fbo) {
-        if (!isFrameBuffer(fbo))
-            return;
-
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo);
-        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
-                GLES20.GL_COLOR_ATTACHMENT0, GL10.GL_TEXTURE_2D, 0, 0);
-
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
-        GLES20.glDeleteFramebuffers(1, new int[] {
-            fbo
-        }, 0);
+    public static void deleteTargetTexture(GL10 gl, int... texture) {
+        gl.glDeleteTextures(texture.length, texture, 0);
     }
 
     public static int createFrameBuffer(GL10 gl, int[] size,
@@ -225,7 +176,7 @@ public class GLHelper {
 
         gl11.glFramebufferTexture2DOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
                 GL11ExtensionPack.GL_COLOR_ATTACHMENT0_OES,
-                GLES20.GL_TEXTURE_2D, targetTextureId, 0);
+                GL10.GL_TEXTURE_2D, targetTextureId, 0);
         int status = gl11
                 .glCheckFramebufferStatusOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES);
 
@@ -235,14 +186,40 @@ public class GLHelper {
         }
 
         gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
-        GLHelper.checkGLError();
+        GLHelper.checkGLError(gl);
         return framebuffer;
+    }
+    
+    public static int createTargetTexture(GL10 gl, int width, int height) {
+
+        int[] textures = new int[1];
+        gl.glGenTextures(1, textures, 0);
+
+        if (textures[0] == 0) {
+            return 0;
+        }
+
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
+        gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width,
+                height, 0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
+
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D,
+                GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S,
+                GL10.GL_REPEAT);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
+                GL10.GL_REPEAT);
+        checkGLError(gl);
+        return textures[0];
     }
 
     public static void deleteFrameBuffers(GL10 gl, int fbo) {
         GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
 
-        if (!isFrameBuffer(gl11, fbo))
+        if (!isFrameBuffer(gl, fbo))
             return;
 
         gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, fbo);
@@ -252,37 +229,10 @@ public class GLHelper {
         gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 
         gl11.glDeleteFramebuffersOES(1, new int[] {
-            fbo
+                fbo
         }, 0);
-        
-        checkGLError();
+
+        checkGLError(gl);
     }
 
-    public static boolean checkIfContextSupportsNPOT() {
-        return checkIfContextSupportsExtension("GL_OES_texture_npot");
-    }
-
-    public static boolean checkIfContextSupportsFrameBufferObject() {
-        return checkIfContextSupportsExtension("GL_OES_framebuffer_object");
-    }
-
-    /**
-     * This is not the fastest way to check for an extension, but fine if we are
-     * only checking for a few extensions each time a context is created.
-     * 
-     * @param gl
-     * @param extension
-     * @return true if the extension is present in the current context.
-     */
-    public static boolean checkIfContextSupportsExtension(String extension) {
-        String extensions = " " + GLES20.glGetString(GLES20.GL_EXTENSIONS)
-                + " ";
-        return extensions.indexOf(" " + extension + " ") >= 0;
-    }
-
-    public static int getMaxClipPanels() {
-        int v[] = new int[1];
-        GLES20.glGetIntegerv(GL11.GL_MAX_CLIP_PLANES, v, 0);
-        return v[0];
-    }
 }
