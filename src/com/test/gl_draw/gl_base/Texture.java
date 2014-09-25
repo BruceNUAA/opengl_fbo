@@ -135,8 +135,8 @@ public class Texture extends NonThreadSafe {
         int new_h = mTextureOriginH;
 
         if (!GLConfigure.getInstance().isSupportNPOT(gl)) {
-            new_w = 512;// (int) GLHelper.cellPowerOf2(mTextureOriginW);
-            new_h = 512;//(int) GLHelper.cellPowerOf2(mTextureOriginH);
+            new_w = (int) GLHelper.cellPowerOf2(mTextureOriginW);
+            new_h = (int) GLHelper.cellPowerOf2(mTextureOriginH);
         }
 
         mRealSize[0] = new_w;
