@@ -7,10 +7,10 @@ import com.test.gl_draw.utils.GLHelper;
 public class GLConfigure {
 
     // GL函数调试相关的信息
-    private boolean mEnableGLCallLog = false;//BuildConfig.DEBUG;
-    private boolean mEnableGLErrorCheck = false;//BuildConfig.DEBUG;
+    private boolean mEnableGLCallLog = GLHelper.EnableGLDebug();
+    private boolean mEnableGLErrorCheck = GLHelper.EnableGLDebug();
     
-    private boolean mEnableGLDebug =  GLHelper.EnableGLDebug();
+    private boolean mEnableGLDebug = GLHelper.EnableGLDebug();
     
     // GL环境相关的信息
     private boolean mGLInited = false;

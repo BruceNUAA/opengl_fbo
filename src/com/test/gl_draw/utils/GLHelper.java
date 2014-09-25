@@ -16,8 +16,11 @@ import android.opengl.ETC1;
 import android.opengl.ETC1Util;
 import android.opengl.ETC1Util.ETC1Texture;
 import android.opengl.GLES10;
+import android.opengl.GLES20;
 import android.opengl.GLException;
 import android.opengl.GLUtils;
+
+import com.example.gl_fbo.BuildConfig;
 
 public class GLHelper {
 
@@ -43,7 +46,7 @@ public class GLHelper {
     }
     
     public static boolean EnableGLDebug() {
-        return false;//BuildConfig.DEBUG;
+        return BuildConfig.DEBUG;
     }
 
     public static boolean isEGLContextOK() {
@@ -207,7 +210,7 @@ public class GLHelper {
         }
 
         gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
-        gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width,
+        GLES20.glTexImage2D(GL10.GL_TEXTURE_2D, 0, GL10.GL_RGBA, width,
                 height, 0, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, null);
 
         gl.glTexParameterf(GL10.GL_TEXTURE_2D,
