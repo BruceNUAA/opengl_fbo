@@ -6,11 +6,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
-import android.view.View.OnTouchListener;
 
 import com.test.gl_draw.gl_base.GLClipManager;
-import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.GLObject;
+import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.igl_draw.IGLView;
 

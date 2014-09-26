@@ -121,6 +121,7 @@ public class GLRotateView extends GLTextureView {
 	// 绘制
 	@Override
 	public void Draw(GL10 gl) {
+		BeforeThreadCall();
 		
 		setDrawClipBound(gl);
 
@@ -134,6 +135,7 @@ public class GLRotateView extends GLTextureView {
 
 		restoreDrawClipBound(gl);
 		
+		AfterThreadCall();
 	}
 
 	public boolean isPtInRegin(float x, float y, RectF rc) {

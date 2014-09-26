@@ -42,7 +42,7 @@ public class GLHelper20 {
         return max[0];
     }
     
-    public static int loadTexture1(Bitmap bitmap) {
+    public static int loadTexture(Bitmap bitmap) {
         
         if (bitmap == null || bitmap.isRecycled())
             return 0;
