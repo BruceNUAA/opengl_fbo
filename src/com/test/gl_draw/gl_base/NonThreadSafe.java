@@ -8,22 +8,16 @@ public abstract class NonThreadSafe {
 		ensureThreadIdAssigned();
 	}
 
-	abstract boolean isDebugEnable();
+	abstract public boolean enableThreadCheck();
 
-	public boolean BeforeThreadCall() {
-		if (!isDebugEnable())
-			return false;
+	public void ThreadCheck() {
+		if (!enableThreadCheck())
+			return;
 
 		ensureThreadIdAssigned();
 		if (mThread != Thread.currentThread()) {
 			throw new RuntimeException("Call on invalided thread!");
 		}
-
-		return true;
-	}
-
-	public boolean AfterThreadCall() {
-		return isDebugEnable();
 	}
 
 	public void detachFromThread() {
@@ -31,7 +25,7 @@ public abstract class NonThreadSafe {
 	}
 
 	private void ensureThreadIdAssigned() {
-		if (!isDebugEnable())
+		if (!enableThreadCheck())
 			return;
 
 		if (this.mThread == null) {

@@ -7,10 +7,18 @@ import com.test.gl_draw.utils.GLHelper;
 public class GLConfigure {
 
     // GL函数调试相关的信息
-    private boolean mEnableGLCallLog = false;// GLHelper.EnableGLDebug();
+    // Opengl函数的调试
+    private boolean mEnableGLCallLog =  false;//GLHelper.EnableGLDebug();
     private boolean mEnableGLErrorCheck = false;//GLHelper.EnableGLDebug();
     
-    private boolean mEnableGLDebug = GLHelper.EnableGLDebug();
+    // GLView函数的调试
+    private boolean mEnableGLThreadCheck = GLHelper.EnableGLDebug();
+    private boolean mEnableGLViewErrorCheck = GLHelper.EnableGLDebug();
+    private boolean mEnableGLViewTimeLog = GLHelper.EnableGLDebug();
+    private boolean mEnableGLTimerLog = GLHelper.EnableGLDebug();
+    
+    // 调试GL资源
+    private boolean mEnableGLResourceLog = GLHelper.EnableGLDebug();
     
     // GL环境相关的信息
     private boolean mGLInited = false;
@@ -52,25 +60,37 @@ public class GLConfigure {
         return mEnableGLErrorCheck;
     }
     
-    public void SetEnableDebug(boolean enable) {
-    	mEnableGLDebug = enable;
+    public boolean enableGLResourceLog() {
+        return mEnableGLResourceLog;
+    }
+    /// 
+    public boolean enableGLThreadCheck() {
+        return mEnableGLThreadCheck;
     }
     
-    public boolean enableDebug() {
-        return mEnableGLDebug;
+    public boolean enableGLViewErrorCheck() {
+        return mEnableGLViewErrorCheck;
     }
     
-    public boolean isSupportFBO(GL10 gl) {
+    public boolean enableGLViewTimeLog() {
+        return mEnableGLViewTimeLog;
+    }
+    
+    public boolean enableGLTimerLog() {
+        return mEnableGLTimerLog;
+    }
+    
+    public boolean isSupportFBO() {
         if (!mGLInited) {
-            Init(gl);
+            throw new RuntimeException("GLConfigure should be Inited!");
         }
         
         return mIsSupportFBO;
     }
     
-    public boolean isSupportNPOT(GL10 gl) {
+    public boolean isSupportNPOT() {
         if (!mGLInited) {
-            Init(gl);
+            throw new RuntimeException("GLConfigure should be Inited!");
         }
         
         return mIsSupportNPOT;

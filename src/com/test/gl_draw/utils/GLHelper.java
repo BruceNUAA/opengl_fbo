@@ -45,6 +45,28 @@ public class GLHelper {
         return n;
     }
     
+    public static String getFuncCallMsg(int offset) {
+        Throwable throwable = new Throwable();
+        
+        int inspact_pos = offset + 1;
+        
+        StackTraceElement[] call_stacks = throwable.getStackTrace();
+        
+        if (call_stacks.length < inspact_pos) {
+            return "";
+        }
+        
+        StringBuilder b = new StringBuilder();
+        
+        b.append(call_stacks[inspact_pos].getFileName());
+        b.append(":");
+        b.append(call_stacks[inspact_pos].getMethodName());
+        b.append("(");
+        b.append(call_stacks[inspact_pos].getLineNumber());
+        b.append(")");
+        return b.toString();
+    }
+    
     public static boolean EnableGLDebug() {
         return BuildConfig.DEBUG;
     }
@@ -88,7 +110,7 @@ public class GLHelper {
         if (bitmap == null || bitmap.isRecycled())
             return 0;
 
-        int[] textures = new int[2];
+        int[] textures = new int[1];
 
         gl.glGenTextures(1, textures, 0);
 
@@ -226,11 +248,11 @@ public class GLHelper {
         return textures[0];
     }
 
-    public static void deleteFrameBuffers(GL10 gl, int fbo) {
+    public static boolean deleteFrameBuffers(GL10 gl, int fbo) {
         GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
 
         if (!isFrameBuffer(gl, fbo))
-            return;
+            return false;
 
         gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, fbo);
         gl11.glFramebufferTexture2DOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES,
@@ -243,6 +265,7 @@ public class GLHelper {
         }, 0);
 
         checkGLError(gl);
+        return true;
     }
 
 }

@@ -3,7 +3,7 @@ package com.test.gl_draw.glview;
 
 import android.graphics.RectF;
 
-import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.data.Texture;
 
 public class GLIndictorView extends GLTextureView {
 

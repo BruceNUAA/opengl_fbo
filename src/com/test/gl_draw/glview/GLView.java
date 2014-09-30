@@ -7,20 +7,23 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
+import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.GLRender;
-import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.igl_draw.IGLView;
+import com.test.gl_draw.igl_draw.ITouchEvent;
 
-public class GLView extends GLObject implements IGLView {
+public class GLView extends GLObject implements ITouchEvent {
 
+    // 事件
+    public interface OnTouchListener {
+        boolean OnClick(GLView v);
+    }
+    
     public static int sID = 0;
 
     private RectF mBounds = new RectF();
     private OnTouchListener mTouchLisener = null;
-
-    private OnVisibleChangeListener mVisibleListener = null;
 
     private boolean mVisible = true;
     private int mID = 0;
@@ -42,17 +45,14 @@ public class GLView extends GLObject implements IGLView {
         sID++;
     }
 
-    @Override
     public int id() {
         return mID;
     }
 
-    @Override
     public void SetId(int id) {
         mID = id;
     }
 
-    @Override
     public void InValidate() {
         GLRender.RequestRender(true);
     }
@@ -61,7 +61,6 @@ public class GLView extends GLObject implements IGLView {
         return mBackgoundDraw;
     }
 
-    @Override
     public void SetBackgound(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
             throw new RuntimeException("背景颜色个数设置错误！");
@@ -70,13 +69,10 @@ public class GLView extends GLObject implements IGLView {
         InValidate();
     }
 
-    @Override
     public void SetBackgound(Texture texture,
             boolean destory_texture_when_detach) {
-        if (texture.isValid()) {
             mBackgoundDraw.SetTexture(texture, destory_texture_when_detach);
             InValidate();
-        }
     }
 
     public void SetAlpha(float alpha) {
@@ -84,11 +80,10 @@ public class GLView extends GLObject implements IGLView {
         mBackgoundDraw.SetAlpha(alpha);
     }
 
-    @Override
     public void Detach() {
         BeforeThreadCall();
         
-        for (IGLView v : mChildViews)
+        for (GLView v : mChildViews)
             v.Detach();
 
         mBackgoundDraw.DetachFromView();
@@ -96,13 +91,8 @@ public class GLView extends GLObject implements IGLView {
         AfterThreadCall();
     }
 
-    @Override
     public boolean visible() {
         return mVisible;
-    }
-
-    public void setOnVisibleListener(OnVisibleChangeListener li) {
-        mVisibleListener = li;
     }
 
     public void SetVisible(boolean visible) {
@@ -111,15 +101,31 @@ public class GLView extends GLObject implements IGLView {
 
         mVisible = visible;
 
-        if (mVisibleListener != null) {
-            mVisibleListener.OnVisibleChange(this);
+        for (GLView view : mChildViews) {
+            view.OnParentVisibleChange(this);
         }
+        
+        OnVisibleChange(this, visible);
         
         InValidate();
     }
+    
+    public void OnVisibleChange(GLView view, boolean visible) {
+        mBackgoundDraw.setVisible(view.visible());
+        
+        for (GLView v : mChildViews) {
+            v.OnParentVisibleChange(view);
+        }
+    }
+    
+    public void OnParentVisibleChange(GLView view) {
+        // 如果本身是可见的，父窗口的可见性改变必然会影响到子窗口
+        if(visible()) {
+            OnVisibleChange(view, view.visible());
+        }
+    }
 
     // 绘制
-    @Override
     public void Draw(GL10 gl) {
 
         if (!visible() || mAlpha == 0)
@@ -145,16 +151,13 @@ public class GLView extends GLObject implements IGLView {
         AfterThreadCall();
     }
 
-    @Override
     public void OnDrawBackgound(GL10 gl) {
         mBackgoundDraw.Draw(gl);
     }
 
-    @Override
     public void OnDraw(GL10 gl) {
     }
 
-    @Override
     public void OnDrawChilds(GL10 gl) {
         if (mChildViews.isEmpty())
             return;
@@ -164,7 +167,7 @@ public class GLView extends GLObject implements IGLView {
         gl.glPushMatrix();
         gl.glTranslatef(mBounds.left, mBounds.top, 0);
 
-        for (IGLView v : mChildViews) {
+        for (GLView v : mChildViews) {
             gl.glPushMatrix();
 
             v.Draw(gl);
@@ -178,7 +181,6 @@ public class GLView extends GLObject implements IGLView {
     }
 
     //
-    
     public void SetX(float x) {
         RectF rc = new RectF(Bounds());
         rc.offset(x - rc.left, 0);
@@ -200,14 +202,13 @@ public class GLView extends GLObject implements IGLView {
         SetBounds(rc);
     }
 
-    @Override
     public void SetBounds(RectF rc) {
         if (rc != null && !rc.equals(mBounds)) {
             RectF tmp = new RectF(mBounds);
 
             mBounds.set(rc);
 
-            for (IGLView v : mChildViews) {
+            for (GLView v : mChildViews) {
                 v.onParentLayoutChange(this, tmp, mBounds);
             }
             mBackgoundDraw.SetRenderRect(rc);
@@ -216,26 +217,22 @@ public class GLView extends GLObject implements IGLView {
         }
     }
 
-    @Override
     public RectF Bounds() {
         return mBounds;
     }
 
-    @Override
     public float getWidth() {
         return mBounds.width();
     }
 
-    @Override
     public float getHeight() {
         return mBounds.height();
     }
 
-    @Override
     public RectF VisibleBoundsInRender() {
         RectF rc = new RectF(mBounds);
 
-        IGLView parent = Parent();
+        GLView parent = Parent();
         while (parent != null && !rc.isEmpty()) {
             RectF boundF = parent.Bounds();
             rc.offset(boundF.left, boundF.top);
@@ -248,7 +245,7 @@ public class GLView extends GLObject implements IGLView {
     }
 
     public void PtInRender(float[] xy) {
-        IGLView parent = Parent();
+        GLView parent = Parent();
         while (parent != null) {
             RectF boundF = parent.Bounds();
             xy[0] += boundF.left;
@@ -258,12 +255,10 @@ public class GLView extends GLObject implements IGLView {
 
     }
 
-    @Override
     public RectF ClipBound() {
         return VisibleBoundsInRender();
     }
 
-    @Override
     public RectF ClipBoundForChildren() {
         return VisibleBoundsInRender();
     }
@@ -274,33 +269,28 @@ public class GLView extends GLObject implements IGLView {
         };
     }
 
-    @Override
     public void onParentLayoutChange(GLView parent, RectF old_r, RectF new_r) {
         if (mChildViews.isEmpty())
             return;
 
-        for (IGLView v : mChildViews) {
+        for (GLView v : mChildViews) {
             v.onParentLayoutChange(this, old_r, new_r);
         }
     }
 
     //
-    @Override
     public boolean HitTest(float x, float y) {
         return mBounds.contains(x, y);
     }
 
-    @Override
     public GLView Parent() {
         return mParent;
     }
 
-    @Override
     public void SetParent(GLView parent) {
         mParent = parent;
     }
 
-    @Override
     public GLView FindViewByPos(float x, float y) {
 
         GLView view = null;
@@ -322,7 +312,6 @@ public class GLView extends GLObject implements IGLView {
 
     }
 
-    @Override
     public GLView FindViewByID(int id) {
         GLView view = null;
 
@@ -341,7 +330,6 @@ public class GLView extends GLObject implements IGLView {
         return view;
     }
 
-    @Override
     public void AddView(GLView view) {
         if (view == null || this.equals(view))
             return;
@@ -355,7 +343,6 @@ public class GLView extends GLObject implements IGLView {
 
     }
 
-    @Override
     public void RemoveAllView() {
 
         CopyOnWriteArrayList<GLView> tmp = (CopyOnWriteArrayList<GLView>) mChildViews
@@ -363,14 +350,13 @@ public class GLView extends GLObject implements IGLView {
 
         mChildViews.clear();
 
-        for (IGLView v : tmp)
+        for (GLView v : tmp)
             v.Detach();
 
         tmp.clear();
         tmp = null;
     }
 
-    @Override
     public void RemoveView(GLView view) {
         if (view == null)
             return;
@@ -396,7 +382,7 @@ public class GLView extends GLObject implements IGLView {
         y -= mBounds.top;
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
+                GLView v = mChildViews.get(i);
                 if (!v.HitTest(x, y))
                     continue;
                 if (v.onSingleTapUp(x, y)) {
@@ -425,7 +411,7 @@ public class GLView extends GLObject implements IGLView {
 
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
+                GLView v = mChildViews.get(i);
                 if (!v.HitTest(cur_x, cur_y))
                     continue;
                 if (v.onScroll(start_x, start_y, cur_x, cur_y, distanceX,
@@ -454,7 +440,7 @@ public class GLView extends GLObject implements IGLView {
 
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
+                GLView v = mChildViews.get(i);
                 if (!v.HitTest(x, y))
                     continue;
                 if (v.onLongPress(x, y)) {
@@ -483,7 +469,7 @@ public class GLView extends GLObject implements IGLView {
         cur_y -= mBounds.top;
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
+                GLView v = mChildViews.get(i);
                 if (!v.HitTest(cur_x, cur_y))
                     continue;
                 if (v.onFling(start_x, start_y, cur_x, cur_y, velocityX,
@@ -583,7 +569,7 @@ public class GLView extends GLObject implements IGLView {
 
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
-                IGLView v = mChildViews.get(i);
+                GLView v = mChildViews.get(i);
                 if (!v.HitTest(x, y))
                     continue;
                 if (v.onShowPress(x, y)) {

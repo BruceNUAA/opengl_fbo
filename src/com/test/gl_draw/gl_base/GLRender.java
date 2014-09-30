@@ -86,7 +86,7 @@ public class GLRender implements GLSurfaceView.Renderer {
 	}
 	
 	public static void CheckOnGLThread() {
-	    if (!GLHelper.EnableGLDebug())
+	    if (!GLConfigure.getInstance().enableGLThreadCheck())
 	        return;
 	    
 	    if (!IsOnGLThread())
@@ -144,6 +144,7 @@ public class GLRender implements GLSurfaceView.Renderer {
 
 		mIRenderMsg.onSurfaceCreated();
 
+		Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 	}
 
 	@Override

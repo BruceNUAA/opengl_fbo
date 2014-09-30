@@ -4,7 +4,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
-import com.test.gl_draw.TabThumbManager;
+import com.test.gl_draw.data.GLBitmapLoader;
+import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.NinePatchDraw;
 
@@ -33,9 +34,9 @@ public class GLNinePatchDrawTest extends GLView {
 		if (!Bounds().equals(rc)) {
 
 			RectF rect = new RectF(rc);
-			TabThumbManager tb = TabThumbManager.getInstance();
-			mNineDraw.setTexture(tb.getShadowTexture(), tb.getShadowStratchPos(),
-					tb.getShadowBorder());
+			GLBitmapLoader bl = GLBitmapLoader.getInstance();
+			mNineDraw.setTexture(new Texture(bl.getShadow()), bl.getShadowStratchPos(),
+					bl.getShadowBorder(), false);
 	
 			mNineDraw.setRect(rect);
 		}

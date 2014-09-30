@@ -7,8 +7,9 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
+import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLObject;
-import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 //           stretch pos
@@ -43,9 +44,15 @@ public class NinePatchDraw extends GLObject {
 	private float[] mStretchPos;
 	private float[] mBorder;
 
-	private RectF mRect;
+	private RectF mRect = new RectF();
 
 	private float mCornerRScale = 1;
+	
+	private float mAlpha = 1;
+	
+	private boolean mVisible = true;
+	
+    private boolean mRecyleBitmapWhenDetach = true;
 
 	public NinePatchDraw() {
 		int[][] index = new int[][] {
@@ -77,24 +84,29 @@ public class NinePatchDraw extends GLObject {
 	}
 
 	public void setAlpha(float alpha) {
-		alpha = Math.max(0, Math.min(1, alpha));
+	    alpha = Math.max(0, Math.min(1, alpha));
+	    
+	    if (mAlpha == alpha && mColorBuffer != null)
+	        return;
+	    
+	    mAlpha = alpha;
 
 		float[][] colors = new float[][] {
 				// 0, 1, 2, 3
-				{ 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
 				// 4, 5, 6, 7
-				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, mAlpha }, { 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
 				// 8, 9, 10, 11
-				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha }, { 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha },
+				{ 1, 1, 1, mAlpha }, { 1, 1, 1, mAlpha }, { 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha },
 				// 12, 13, 14, 15
-				{ 1, 1, 1, alpha }, { 1, 1, 1, alpha }, { 1, 1, 1, alpha },
-				{ 1, 1, 1, alpha }, };
+				{ 1, 1, 1, mAlpha }, { 1, 1, 1, mAlpha }, { 1, 1, 1, mAlpha },
+				{ 1, 1, 1, mAlpha }, };
 
 		mColorBuffer = BufferUtil.newFloatBuffer(colors.length
 				* colors[0].length);
@@ -107,9 +119,11 @@ public class NinePatchDraw extends GLObject {
 
 	}
 
-	public void setTexture(Texture texture, float[] stretchPos, float[] border) {
-		if (texture == null || !texture.isValid() || stretchPos.length < 4)
+	public void setTexture(Texture texture, float[] stretchPos, float[] border, boolean recyle_bitmap_when_detach) {
+		if (texture == null || stretchPos.length < 4)
 			return;
+		
+		mRecyleBitmapWhenDetach = recyle_bitmap_when_detach;
 
 		if (border == null || border.length < 4) {
 			border = new float[4];
@@ -119,7 +133,7 @@ public class NinePatchDraw extends GLObject {
 		mBorder = border.clone();
 		
 		if(mTexture != null)
-		    mTexture.Destory();
+		    mTexture.Destory(true);
 		
 		mTexture = texture;
 
@@ -137,15 +151,30 @@ public class NinePatchDraw extends GLObject {
 	public void setRect(RectF rect) {
 		if (rect == null || rect.isEmpty())
 			return;
-		mRect = new RectF(rect);
+		mRect.set(rect);
 
 		UpdateRect();
 	}
+	
+    public void setVisible(boolean visible) {
+        if (mVisible == visible)
+            return;
+        
+        mVisible = visible;
+        if (mTexture == null)
+            return;
+        
+        if (!mVisible) {
+            mTexture.Destory(false);
+        } else {
+            mTexture.ReloadIfNeed(GLRender.GL());
+        }
+    }
 
 	public void Draw(GL10 gl) {
 
 		if (mTXCoordBuffer == null || mVBuffer == null || mIdexBuffer == null
-				|| mTexture == null || !mTexture.isValid())
+				|| mTexture == null || mAlpha == 0 || mVisible == false)
 			return;
 
 		if (!mTexture.bind(gl))
@@ -183,9 +212,39 @@ public class NinePatchDraw extends GLObject {
 		mCornerRScale = scale;
 		UpdateRect();
 	}
+	
+    public void UnloadTexture() {
+        if (mTexture != null) {
+            mTexture.Destory(false);
+        }
+    }
+
+    public void DetachFromView() {
+        if (mTexture != null) {
+            mTexture.Destory(mRecyleBitmapWhenDetach);
+            mTexture = null;
+        }
+
+        if (mVBuffer != null) {
+            mVBuffer.clear();
+            mVBuffer = null;
+        }
+
+        if (mTXCoordBuffer != null) {
+            mTXCoordBuffer.clear();
+            mTXCoordBuffer = null;
+        }
+
+        if (mColorBuffer != null) {
+            mColorBuffer.clear();
+            mColorBuffer = null;
+        }
+
+        mRect.setEmpty();
+    }
 
 	private void UpdateTexture() {
-		if (mTexture == null || !mTexture.isValid() || mStretchPos == null)
+		if (mTexture == null || mStretchPos == null)
 			return;
 
 		int[] size = mTexture.getRealSize();

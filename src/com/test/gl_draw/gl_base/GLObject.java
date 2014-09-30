@@ -1,124 +1,159 @@
+
 package com.test.gl_draw.gl_base;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import android.util.Log;
 import android.util.Pair;
 
 import com.test.gl_draw.utils.GLHelper20;
 
 public class GLObject extends NonThreadSafe {
 
-	// 确保BeforeThreadCall和AfterThreadCall成对调用
-	private List<Pair<Integer, String>> mCallStackTrace = new ArrayList<Pair<Integer, String>>();
+    // 确保BeforeThreadCall和AfterThreadCall成对调用
+    private List<Pair<Integer, String>> mCallStackTrace = new ArrayList<Pair<Integer, String>>();
+    private List<Long> mCallTime = new ArrayList<Long>();
 
-	@Override
-	public boolean isDebugEnable() {
-		return GLConfigure.getInstance().enableDebug();
-	}
+    private Throwable mThrowable = new Throwable();
 
-	@Override
-	public boolean BeforeThreadCall() {
-		if (!super.BeforeThreadCall())
-			return false;
+    private boolean mShowDebugTime = GLConfigure.getInstance().enableGLViewTimeLog();
 
-		checkCallBefore();
-		return true;
-	}
+    public void SetShowDebugTime(boolean show) {
+        mShowDebugTime = show;
+    }
 
-	@Override
-	public boolean AfterThreadCall() {
-		if (!super.AfterThreadCall())
-			return false;
+    @Override
+    public boolean enableThreadCheck() {
+        return GLConfigure.getInstance().enableGLThreadCheck();
+    }
 
-		checkCallAfter();
+    public void BeforeThreadCall() {
+        super.ThreadCheck();
 
-		GLHelper20.checkGLError();
+        if (!GLConfigure.getInstance().enableGLViewErrorCheck() && !mShowDebugTime)
+            return;
 
-		return true;
-	}
+        checkCallBefore();
+    }
 
-	private void checkCallBefore() {
-		StackTraceElement[] call_stack = Thread.currentThread().getStackTrace();
+    public void AfterThreadCall() {
 
-		final int inspact_place_deep = 5;
+        if (!GLConfigure.getInstance().enableGLViewErrorCheck() && !mShowDebugTime)
+            return;
 
-		if (call_stack == null || call_stack.length < inspact_place_deep)
-			return;
+        checkCallAfter();
 
-		int call_deep = call_stack.length;
+        GLHelper20.checkGLError();
+    }
 
-		int n = mCallStackTrace.size();
+    private void checkCallBefore() {
 
-		if (n > 0) {
-			Pair<Integer, String> last_call = mCallStackTrace.get(n - 1);
-			if (last_call.first >= call_deep) {
-				throwException(last_call.second);
-			}
-		}
+        mThrowable.fillInStackTrace();
+        StackTraceElement[] call_stack = mThrowable.getStackTrace();
 
-		StackTraceElement inspact_place = call_stack[inspact_place_deep - 1];
+        int inspact_place_deep = 3;
 
-		StringBuilder info = new StringBuilder();
-		info.append(inspact_place.getClassName());
-		info.append(":");
-		info.append(inspact_place.getMethodName());
-		info.append("(");
-		info.append(inspact_place.getLineNumber());
-		info.append("）");
+        if (call_stack == null || call_stack.length < inspact_place_deep)
+            return;
 
-		mCallStackTrace.add(new Pair<Integer, String>(call_deep, info
-				.toString()));
-	}
+        int call_deep = call_stack.length;
 
-	private void checkCallAfter() {
-		StackTraceElement[] call_stack = Thread.currentThread().getStackTrace();
+        int n = mCallStackTrace.size();
 
-		final int inspact_place_deep = 5;
+        if (n > 0) {
+            Pair<Integer, String> last_call = mCallStackTrace.get(n - 1);
+            if (last_call.first >= call_deep) {
+                throwException(last_call.second);
+                return;
+            }
+        }
 
-		if (call_stack == null || call_stack.length < inspact_place_deep)
-			return;
+        StringBuilder info = new StringBuilder();
 
-		int call_deep = call_stack.length;
+        if (GLConfigure.getInstance().enableGLViewErrorCheck()) {
+            StackTraceElement inspact_place = call_stack[inspact_place_deep - 1];
 
-		int n = mCallStackTrace.size();
+            info.append(getClass().getSimpleName());
+            info.append(":");
+            info.append(inspact_place.getMethodName());
+            info.append("(");
+            info.append(inspact_place.getLineNumber());
+            info.append("）");
 
-		do {
-			String error_info = null;
-			
-			if (n > 0) {
-				Pair<Integer, String> last_call = mCallStackTrace.get(n - 1);
-				if (last_call.first != call_deep) {
-					error_info = last_call.second;
-				} else {
-					break;
-				}
-			} else {
-				StackTraceElement inspact_place = call_stack[inspact_place_deep - 1];
+        }
 
-				StringBuilder info = new StringBuilder();
-				info.append(inspact_place.getClassName());
-				info.append(":");
-				info.append(inspact_place.getMethodName());
-				info.append("(");
-				info.append(inspact_place.getLineNumber());
-				info.append("）");
-				
-				error_info = info.toString();
-			}
-			
-			throwException(error_info);
-			
-		} while(false);
-		
-		mCallStackTrace.remove(n - 1);
-	}
+        mCallStackTrace.add(new Pair<Integer, String>(call_deep, info
+                .toString()));
 
-	private void throwException(String last_call_place) {
-		StringBuffer b = new StringBuffer();
-		b.append("\nFunc:[BeforeThreadCall] and Func:[AfterThreadCall] should be call pairly!");
-		b.append("\nLast call place: ");
-		b.append(last_call_place);
-		throw new RuntimeException(b.toString());
-	}
+        mCallTime.add(System.nanoTime());
+    }
+
+    private void checkCallAfter() {
+        mThrowable.fillInStackTrace();
+        StackTraceElement[] call_stack = mThrowable.getStackTrace();
+        StackTraceElement inspact_place = null;
+
+        int inspact_place_deep = 3;
+
+        if (call_stack == null || call_stack.length < inspact_place_deep)
+            return;
+
+        inspact_place = call_stack[inspact_place_deep - 1];
+
+        StringBuilder info = new StringBuilder();
+
+        int call_deep = call_stack.length;
+
+        int n = mCallStackTrace.size();
+
+        do {
+            String error_info = null;
+
+            if (n > 0) {
+                Pair<Integer, String> last_call = mCallStackTrace.get(n - 1);
+                if (last_call.first != call_deep) {
+                    error_info = last_call.second;
+                } else {
+                    break;
+                }
+            } else if (GLConfigure.getInstance().enableGLViewErrorCheck()) {
+                info.append(getClass().getSimpleName());
+                info.append(":");
+                info.append(inspact_place.getMethodName());
+                info.append("(");
+                info.append(inspact_place.getLineNumber());
+                info.append("）");
+
+                error_info = info.toString();
+            }
+
+            throwException(error_info);
+            return;
+
+        } while (false);
+
+        mCallStackTrace.remove(n - 1);
+
+        long this_call_time = System.nanoTime() - mCallTime.get(n - 1);
+        mCallTime.remove(n - 1);
+
+        if (mShowDebugTime) {
+            info.append(getClass().getSimpleName());
+            info.append(":");
+            info.append(inspact_place.getMethodName());
+            Log.v(info.toString(), "Call Time: " + this_call_time / 1000.0f + "*0.001(ms)");
+        }
+    }
+
+    private void throwException(String last_call_place) {
+        if (!GLConfigure.getInstance().enableGLViewErrorCheck())
+            return;
+
+        StringBuffer b = new StringBuffer();
+        b.append("\nFunc:[BeforeThreadCall] and Func:[AfterThreadCall] should be call pairly!");
+        b.append("\nLast call place: ");
+        b.append(last_call_place);
+        throw new RuntimeException(b.toString(), mThrowable);
+    }
 }

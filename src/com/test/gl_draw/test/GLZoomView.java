@@ -10,11 +10,10 @@ import android.graphics.RectF;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.test.gl_draw.KApplication;
+import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLTimer;
-import com.test.gl_draw.gl_base.Texture;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.NinePatchDraw;
-import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.utils.helper.DebugToast;
 import com.test.gl_draw.utils.helper.ThreadUtils;
 
@@ -27,10 +26,10 @@ public class GLZoomView extends GLView implements GLTimer.OnAnimatListener {
 
 	private NinePatchDraw mDraw = new NinePatchDraw();
 
-	IGLView.OnTouchListener mTouchLisener = new IGLView.OnTouchListener() {
+	GLView.OnTouchListener mTouchLisener = new GLView.OnTouchListener() {
 
 		@Override
-		public boolean OnClick(final IGLView v) {
+		public boolean OnClick(final GLView v) {
 			ThreadUtils.postOnUiThread(new Runnable() {
 
 				@Override
@@ -84,7 +83,7 @@ public class GLZoomView extends GLView implements GLTimer.OnAnimatListener {
 		Texture texture = new Texture();
 		texture.Init(bitmap);
 		mDraw.setTexture(texture, new float[] { w / 2, w / 2, w / 2, w / 2 },
-				null);
+				null, true);
 	}
 
 	@Override
@@ -100,7 +99,7 @@ public class GLZoomView extends GLView implements GLTimer.OnAnimatListener {
 	}
 
 	@Override
-	public void OnAnimationStart() {
+	public void OnAnimationStart(float start) {
 
 	}
 
@@ -118,7 +117,7 @@ public class GLZoomView extends GLView implements GLTimer.OnAnimatListener {
 	}
 
 	@Override
-	public void OnAnimationEnd() {
+	public void OnAnimationEnd(float end) {
 		SetBounds(mStartRect);
 		mDraw.setAlpha(1);
 		mDraw.setCornerRate(1);

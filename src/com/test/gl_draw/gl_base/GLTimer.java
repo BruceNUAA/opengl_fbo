@@ -7,12 +7,13 @@ import android.os.SystemClock;
 import android.view.animation.LinearInterpolator;
 
 public class GLTimer extends GLObject implements GLRender.IRenderFrame {
+
 	public interface OnAnimatListener {
-		void OnAnimationStart();
+		void OnAnimationStart(float start_v);
 
 		void OnAnimationUpdate(float last_v, float new_v);
 
-		void OnAnimationEnd();
+		void OnAnimationEnd(float end_v);
 	}
 
 	private float mStart;
@@ -30,6 +31,11 @@ public class GLTimer extends GLObject implements GLRender.IRenderFrame {
 			OnAnimatListener li) {
 		GLTimer timer = new GLTimer();
 
+		if (duration == 0) {
+		    // 避免NaN
+		    duration = 1;
+		}
+		
 		timer.mStart = a;
 		timer.mEnd = b;
 		timer.mDuration = duration;
@@ -44,20 +50,6 @@ public class GLTimer extends GLObject implements GLRender.IRenderFrame {
 
 	public float[] getAnimationArgs() {
 		return new float[] { mStart, mEnd, mDuration };
-	}
-
-	public void setAnimationArgs(float... args) {
-		if (args.length < 3) {
-			if (isDebugEnable()) {
-				throw new RuntimeException();
-			}
-			return;
-		}
-
-		mStart = args[0];
-		mEnd = args[1];
-		mDuration = (long) args[2];
-		mIsRunning = false;
 	}
 
 	public float getAnimationPos() {
@@ -93,7 +85,7 @@ public class GLTimer extends GLObject implements GLRender.IRenderFrame {
 		mStartedTime = SystemClock.uptimeMillis();
 		mCurrentTime = mStartedTime;
 		if (mListener != null) {
-			mListener.OnAnimationStart();
+			mListener.OnAnimationStart(mStart);
 
 			GLRender.RegistFrameCallback(this);
 			GLRender.RequestRender(false);
@@ -109,7 +101,7 @@ public class GLTimer extends GLObject implements GLRender.IRenderFrame {
 
 		if (mListener != null) {
 			mIsRunning = false;
-			mListener.OnAnimationEnd();
+			mListener.OnAnimationEnd(mEnd);
 
 			GLRender.UnRegistFrameCallback(this);
 		}
@@ -128,6 +120,9 @@ public class GLTimer extends GLObject implements GLRender.IRenderFrame {
 		long current = SystemClock.uptimeMillis();
 
 		if (current >= mStartedTime + mDuration) {
+		    
+		    mCurrentTime = mStartedTime + mDuration;
+		    mListener.OnAnimationUpdate(mEnd, mEnd);
 			stop();
 		} else {
 			float last_pos = mInterpolator

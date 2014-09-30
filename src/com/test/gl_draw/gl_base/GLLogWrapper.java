@@ -1,13 +1,13 @@
 
 package com.test.gl_draw.gl_base;
 
-import android.opengl.GLDebugHelper;
-import android.opengl.GLSurfaceView;
-import android.util.Log;
-
 import java.io.Writer;
 
 import javax.microedition.khronos.opengles.GL;
+
+import android.opengl.GLDebugHelper;
+import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 public class GLLogWrapper implements GLSurfaceView.GLWrapper {
 

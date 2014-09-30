@@ -8,8 +8,10 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Color;
 import android.graphics.RectF;
 
+import com.test.gl_draw.data.Texture;
+import com.test.gl_draw.gl_base.GLConfigure;
 import com.test.gl_draw.gl_base.GLObject;
-import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 public class TextureDraw extends GLObject {
@@ -36,7 +38,8 @@ public class TextureDraw extends GLObject {
 
     private RectF mTextureVisibleRectF = new RectF();
 
-    private boolean mDestoryTextureWhenDetach = true;
+
+    private boolean mRecyleBitmapWhenDetach = true;
     
     public void SetColor(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
@@ -49,8 +52,16 @@ public class TextureDraw extends GLObject {
     }
 
     public void SetAlpha(float alpha) {
-        mAlpha = Math.max(0, Math.min(1, alpha));
-
+        alpha = Math.max(0, Math.min(1, alpha));
+        
+        if (mAlpha == alpha && mColorBuffer != null)
+            return;
+        
+        mAlpha = alpha;
+        
+        if (mAlpha == 0 && mTexture != null)
+            mTexture.Destory(false);
+        
         int alpha_i = (int) (255 * mAlpha + 0.5);
 
         if (mColor == null) {
@@ -69,16 +80,16 @@ public class TextureDraw extends GLObject {
         refreshColor();
     }
 
-    public void SetTexture(Texture texture, boolean destory_texture_when_detach) {
-        SetTexture(texture, null, destory_texture_when_detach);
+    public void SetTexture(Texture texture, boolean recyle_bitmap_when_detach) {
+        SetTexture(texture, null, recyle_bitmap_when_detach);
 
     }
 
-    public void SetTexture(Texture texture, RectF visible_rect, boolean destory_texture_when_detach) {
-        if (texture == null || !texture.isValid() || texture == mTexture)
+    public void SetTexture(Texture texture, RectF visible_rect, boolean recyle_bitmap_when_detach) {
+        if (texture == null || texture == mTexture)
             return;
 
-        mDestoryTextureWhenDetach = destory_texture_when_detach;
+        mRecyleBitmapWhenDetach = recyle_bitmap_when_detach || !GLConfigure.getInstance().isSupportNPOT();
         
         if (visible_rect == null || visible_rect.isEmpty()) {
             int[] size = texture.getTextSize();
@@ -86,10 +97,11 @@ public class TextureDraw extends GLObject {
             mTextureVisibleRectF.set(0, 0, size[0], size[1]);
         }
 
-        if (mTexture == null)
-            mTexture = new Texture();
+        if (mTexture != null) {
+            mTexture.Destory(recyle_bitmap_when_detach);
+        }
 
-        mTexture.Init(texture);
+        mTexture = texture;
         
         //
         int[] size = mTexture.getTextSize();
@@ -109,9 +121,15 @@ public class TextureDraw extends GLObject {
         refreshTXData();
     }
     
+    public void UnloadTexture() {
+        if (mTexture != null) {
+            mTexture.Destory(false);
+        }
+    }
+    
     public void DetachFromView() {
-    	if (mTexture != null && mDestoryTextureWhenDetach) {
-    		mTexture.Destory();
+    	if (mTexture != null) {
+    		mTexture.Destory(mRecyleBitmapWhenDetach);
     		mTexture = null;
     	}
     	
@@ -129,6 +147,8 @@ public class TextureDraw extends GLObject {
     		mColorBuffer.clear();
     		mColorBuffer = null;
     	}
+    	
+    	mRenderRect.setEmpty();
     }
 
     public void SetRenderRect(RectF rc) {
@@ -157,7 +177,18 @@ public class TextureDraw extends GLObject {
     }
 
     public void setVisible(boolean visible) {
+        if (mVisible == visible)
+            return;
+        
         mVisible = visible;
+        if (mTexture == null)
+            return;
+        
+        if (!mVisible) {
+            mTexture.Destory(false);
+        } else {
+            mTexture.ReloadIfNeed(GLRender.GL());
+        }
     }
 
     public Texture getTexture() {
@@ -177,7 +208,7 @@ public class TextureDraw extends GLObject {
         if (mRenderRect.isEmpty() || !mVisible || mAlpha == 0)
             return;
         
-        boolean has_texture = mTexture != null && mTexture.ReloadIfNeed();
+        boolean has_texture = mTexture != null && mTexture.ReloadIfNeed(gl);
 
         boolean has_color = mColorBuffer != null;
 
@@ -262,7 +293,7 @@ public class TextureDraw extends GLObject {
     }
 
     private void refreshTXData() {
-        if (mTexture == null || !mTexture.isValid())
+        if (mTexture == null)
             return;
 
         RectF t_r = new RectF(mTexture.getTextRect());

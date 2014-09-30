@@ -4,7 +4,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
 
-import com.test.gl_draw.gl_base.Texture;
+import com.test.gl_draw.data.Texture;
 
 public class GLTextureView extends GLView {
 	private TextureDraw mDraw = new TextureDraw();
@@ -30,7 +30,7 @@ public class GLTextureView extends GLView {
 	      if (mDraw == null || mDraw.getTexture() == null) {
 	          return super.getPreferSize();
 	      } else {
-	          int[] size = mDraw.getTexture().getTextSize();
+	          int[] size = mDraw.getTextSize();
 	          return new float[] {size[0], size[1]};
 	      }
 	  }
@@ -39,6 +39,12 @@ public class GLTextureView extends GLView {
 	public void SetBounds(RectF rc) {
 		super.SetBounds(rc);
 		mDraw.SetRenderRect(rc);
+	}
+	
+	@Override 
+	public void OnVisibleChange(GLView view, boolean visible) {
+	    super.OnVisibleChange(view, visible);
+	    mDraw.setVisible(visible);
 	}
 	
 	@Override

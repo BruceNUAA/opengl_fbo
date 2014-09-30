@@ -48,7 +48,6 @@ public class GLRootScene extends GLObject implements IScene {
         mRootView.SetBounds(new RectF(0, 0, w, h));
         
         GLViewTest.test1(rootview());
-        
         AfterThreadCall(); 
     }
 

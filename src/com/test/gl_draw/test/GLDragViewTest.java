@@ -1,14 +1,14 @@
 package com.test.gl_draw.test;
 
-import com.test.gl_draw.glview.GLDragView;
-import com.test.gl_draw.igl_draw.IGLView;
+import com.test.gl_draw.glview.GLView;
+
 
 public class GLDragViewTest extends GLDragView {
 	@Override
 	public boolean onScroll(float start_x, float start_y, float cur_x,
 			float cur_y, float distanceX, float distanceY) {
 
-		for (IGLView v : mChildViews) {
+		for (GLView v : mChildViews) {
 			if (v instanceof GLRotateViewTest) {
 				GLRotateViewTest g = (GLRotateViewTest) v;
 				g.setRotateOrigin(g.Bounds().centerX(), g.Bounds().centerY());

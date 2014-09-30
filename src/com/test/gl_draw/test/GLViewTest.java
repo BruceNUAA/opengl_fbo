@@ -8,12 +8,11 @@ import android.graphics.RectF;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.KApplication;
-import com.test.gl_draw.gl_base.Texture;
-import com.test.gl_draw.glview.GLDragView;
+import com.test.gl_draw.data.GLBitmapLoader;
+import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.glview.GLRotateView;
 import com.test.gl_draw.glview.GLTextureView;
 import com.test.gl_draw.glview.GLView;
-import com.test.gl_draw.igl_draw.IGLView;
 import com.test.gl_draw.utils.helper.DebugToast;
 import com.test.gl_draw.utils.helper.ThreadUtils;
 
@@ -28,9 +27,9 @@ public class GLViewTest {
 	}
 
 	public static void test1(GLView root_view) {
-		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
+		GLView.OnTouchListener touch = new GLView.OnTouchListener() {
 			@Override
-			public boolean OnClick(final IGLView v) {
+			public boolean OnClick(final GLView v) {
 				ThreadUtils.postOnUiThread(new Runnable() {
 
 					@Override
@@ -55,19 +54,14 @@ public class GLViewTest {
 		GLView view = new GLDragViewTest();
 		view.setOnTouchLisener(touch);
 		view.SetBounds(new RectF(w * 0.1f, h * 0.1f, w * 0.9f, h * 0.9f));
-		view.SetBackgound(0x3fff0000);
+		view.SetBackgound(0xff00264c, 0xffa4b9cf);
 		root_view.AddView(view);
 
-		Context cx = KApplication.sApplication;
-		Bitmap b = null;
 		Texture texture = null;
 		{
 
-			b = BitmapFactory.decodeResource(cx.getResources(),
-					R.drawable.port_img);
 			texture = new Texture();
-			texture.Init(b);
-			b.recycle();
+			texture.Init(GLBitmapLoader.getInstance().getNewTabIcon());
 
 			GLRotateView view6 = new GLRotateViewTest();
 
@@ -81,7 +75,7 @@ public class GLViewTest {
 
 			view6.SetBounds(bF);
 
-			view6.SetBackgound(0xa500ffff);
+			view6.SetBackgound(0x5fffffff);
 			view.AddView(view6);
 
 			GLZoomView view2 = new GLZoomView();
@@ -99,9 +93,9 @@ public class GLViewTest {
 	}
 
 	public static void test2(GLView root_view) {
-		IGLView.OnTouchListener touch = new IGLView.OnTouchListener() {
+		GLView.OnTouchListener touch = new GLView.OnTouchListener() {
 			@Override
-			public boolean OnClick(IGLView v) {
+			public boolean OnClick(GLView v) {
 				// DLog.e("Test", "Touch ID = " + v.id());
 				return true;
 			}
