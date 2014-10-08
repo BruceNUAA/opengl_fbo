@@ -56,6 +56,7 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 	/** This will be used to pass in the texture. */
 	private int mTextureUniformHandle;
 
+	private int mUseTextureHandle;
 	/** This will be used to pass in model position information. */
 	private int mPositionHandle;
 
@@ -89,11 +90,12 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 		// Use culling to remove back faces.
-		GLES20.glEnable(GLES20.GL_CULL_FACE);
+	//	GLES20.glEnable(GLES20.GL_CULL_FACE);
 
 		// Enable depth testing
-		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-
+	//	GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+		//GLES20.glEnable(GL10.GL_BLEND);
+		//GLES20.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		// The below glEnable() call is a holdover from OpenGL ES 1, and is not
 		// needed in OpenGL ES 2.
 		// Enable texture mapping
@@ -115,8 +117,9 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 		final float upY = 1.0f;
 		final float upZ = 0.0f;
 		ToolsUtil.checkGLError();
-		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
-				lookZ, upX, upY, upZ);
+		Matrix.setIdentityM(mViewMatrix, 0);
+	//	Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
+		//		lookZ, upX, upY, upZ);
 		ToolsUtil.checkGLError();
 		final String vertexShader = ToolsUtil.readTextFileFromRawResource(
 				mActivityContext, R.raw.per_pixel_vertex_shader);
@@ -130,11 +133,11 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 
 		mProgramHandle = ToolsUtil.createAndLinkProgram(vertexShaderHandle,
 				fragmentShaderHandle, new String[] { "a_Position", "a_Color",
-						"a_TexCoordinate" });
+						"a_TexCoordinate", "u_polygon" });
 		ToolsUtil.checkGLError();
 		// Load the texture
 		mTextureDataHandle = ToolsUtil.loadTexture(mActivityContext,
-				R.drawable.img);
+				R.drawable.kui_toolbar_new_tab);
 
 		GLES20.glUseProgram(mProgramHandle);
 
@@ -145,6 +148,10 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 				"u_MVMatrix");
 		mTextureUniformHandle = GLES20.glGetUniformLocation(mProgramHandle,
 				"u_Texture");
+
+		mUseTextureHandle= GLES20.glGetUniformLocation(mProgramHandle,
+				"u_use_texture");
+		
 		mPositionHandle = GLES20.glGetAttribLocation(mProgramHandle,
 				"a_Position");
 		mColorHandle = GLES20.glGetAttribLocation(mProgramHandle, "a_Color");
@@ -156,7 +163,7 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 	@Override
 	public void onSurfaceChanged(GL10 glUnused, int width, int height) {
 		GLES20.glViewport(0, 0, width, height);
-
+		{
 		final float left = -width / 2;
 		final float right = width / 2;
 		final float bottom = height / 2.0f;
@@ -165,6 +172,17 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 		final float far = 1.0f;
 
 		Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+		}
+		float left = 0;
+		float right = width;
+		float bottom = height;
+		float top = 0;
+		float near = -1.0f;
+		float far = 1.0f;
+		Matrix.setIdentityM(mProjectionMatrix, 0);
+		
+		Matrix.orthoM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+
 	}
 
 	float mStep = 0.005f;
@@ -172,41 +190,35 @@ public class TestRenderer implements GLSurfaceView.Renderer, IShadeManager {
 
 	@Override
 	public void onDrawFrame(GL10 glUnused) {
-		String string  = GLES20.glGetString(GLES20.GL_EXTENSIONS);
-		//GLES20.glDisable(cap)(GLES20.GL_TEXTURE_2D);
-		ToolsUtil.checkGLError();
 		if (true) {
-			//if(true)
-				//return;
 			mV += mStep;
 			if (mV > 1 || mV < 0) {
 				mStep *= -1;
 				mV += mStep;
 			}
-			GLES20.glClearColor(0, 0, 0, 0);
-			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT
-					| GLES20.GL_DEPTH_BUFFER_BIT);
+			
+			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
 			// Do a complete rotation every 10 seconds.
 			long time = SystemClock.uptimeMillis() % 10000L;
 			float angleInDegrees = (360.0f / 10000.0f) * (2 * (int) time);
-
-			// Set the active texture unit to texture unit 0.
-			GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
 			// Bind the texture to this unit.
 			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
 
 			// Tell the texture uniform sampler to use this texture in the
 			// shader by binding to texture unit 0.
-			GLES20.glUniform1i(mTextureUniformHandle, 0);
-
+		//	GLES20.glUniform1i(mTextureUniformHandle, 0);
+			GLES20.glUniform1f(mUseTextureHandle, 1);
 			Matrix.setIdentityM(mModelMatrix, 0);
-			Matrix.rotateM(mModelMatrix, 0, mV * 360, 0, 0, 0.5f);
+			//Matrix.rotateM(mModelMatrix, 0, mV * 360, 0, 0, 0.5f);
 			mCube.drawCube();
 
 			return;
 		}
+		
+		if(true)
+			return;
 		
 	//	IntBuffer framebuffer = IntBuffer.allocate(1);
 		int [] framebuffer = new int[1];

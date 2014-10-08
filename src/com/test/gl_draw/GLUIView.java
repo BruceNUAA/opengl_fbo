@@ -219,7 +219,7 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         } else {
             setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         }
-
+       
         requestRender();
     }
 
@@ -242,6 +242,8 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
         mGestureDector = new GestureDetector(context, this);
         mRender = new GLRender(this, mRootScene);
 
+        setEGLContextClientVersion(2);
+        
         setEGLConfigChooser(new MultisampleConfigChooser());
 
         setGLWrapper(new GLLogWrapper(
@@ -257,7 +259,6 @@ public class GLUIView extends GLSurfaceView implements GLRender.IRenderMsg,
 
     private void postGLViewInitTask() {
         final GLView rootView = mRootScene.rootview();
-        rootView.detachFromThread();
         mRootScene.detachFromThread();
 
         Runnable gl_init_task = new Runnable() {

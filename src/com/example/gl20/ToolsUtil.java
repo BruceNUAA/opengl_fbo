@@ -47,7 +47,7 @@ public class ToolsUtil {
 		if (textureHandle[0] == 0) {
 			throw new RuntimeException("failed to load texture");
 		}
-
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 		return textureHandle[0];
 	}
 

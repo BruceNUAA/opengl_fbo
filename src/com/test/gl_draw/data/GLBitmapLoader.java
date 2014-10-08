@@ -1,5 +1,5 @@
-
 package com.test.gl_draw.data;
+
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -20,6 +20,7 @@ import android.view.View;
 
 import com.example.gl_fbo.R;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.utils.GLHelper20;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 
@@ -54,6 +55,9 @@ public class GLBitmapLoader {
     private Bitmap mIncognitoModeTipIcon;
 
     private Bitmap mNewTabIcon;
+    
+    private String mVertexShader;
+    private String mFragmentShader;
 
     public static GLBitmapLoader getInstance() {
         if (sTabThumbManager == null) {
@@ -138,6 +142,14 @@ public class GLBitmapLoader {
             v[i] *= scale;
         }
         return v;
+    }
+    
+    public String getVertexShader() {
+    	return mVertexShader;
+    }
+    
+    public String getFragmentShader() {
+    	return mFragmentShader;
     }
 
     public void UpdateAddressBarAndToolbarThumb() {
@@ -271,8 +283,13 @@ public class GLBitmapLoader {
                 R.drawable.muti_tab_shadow);
         mIncognitoModeTipIcon = BitmapFactory.decodeResource(mResources,
                 R.drawable.incognito_mode_icon);
+        
+        mVertexShader = GLHelper20.readTextFileFromRawResource(
+        		mResources, R.raw.per_pixel_vertex_shader);
+        mFragmentShader = GLHelper20.readTextFileFromRawResource(
+        		mResources, R.raw.per_pixel_fragment_shader);
 
-        if (false) {
+        if (true) {
         	mClose = BitmapFactory.decodeResource(mResources, R.drawable.muti_tab_close);
         	mNewTabIcon = BitmapFactory.decodeResource(mResources, R.drawable.kui_toolbar_new_tab);
         } else {

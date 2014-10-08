@@ -8,7 +8,6 @@ import javax.microedition.khronos.opengles.GL11ExtensionPack;
 import android.graphics.RectF;
 
 import com.test.gl_draw.gl_base.GLClipManager;
-import com.test.gl_draw.gl_base.GLConfigure;
 import com.test.gl_draw.gl_base.GLRender;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.TextureDraw;
@@ -41,9 +40,9 @@ public class GLFrameBuffer extends GLResource {
     }
     
     public void DrawToLayer(GL10 gl, float alpha) {
-        if (!GLConfigure.getInstance().isSupportFBO())
-            return;
 
+    	if (true)
+    		return;
         mFrameCallStackCount++;
 
         if (mFrameCallStackCount != 1) {
@@ -74,9 +73,6 @@ public class GLFrameBuffer extends GLResource {
 
     public void Restore(GL10 gl) {
 
-        if (!GLConfigure.getInstance().isSupportFBO())
-            return;
-        
         mFrameCallStackCount--;
 
         if (mFrameCallStackCount < 0) {

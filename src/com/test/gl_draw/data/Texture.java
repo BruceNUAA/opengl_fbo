@@ -6,6 +6,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.RectF;
+import android.opengl.GLES20;
 
 import com.test.gl_draw.gl_base.GLConfigure;
 import com.test.gl_draw.utils.GLHelper;
@@ -252,7 +253,7 @@ public class Texture extends GLResource {
     }
 
     public boolean ReloadIfNeed(GL10 gl) {
-
+   
         if (!isValid()) {
             long t = System.nanoTime();
             
@@ -261,21 +262,21 @@ public class Texture extends GLResource {
                     Bitmap resizedBitmap = GLBitmapLoader.getInstance().ResizeBitmap(mBitmap,
                             mRealSize[0], mRealSize[1]);
 
-                    mTexture = GLHelper.loadTexture(gl, resizedBitmap);
+                    mTexture = GLHelper20.loadTexture(resizedBitmap);
 
                     resizedBitmap.recycle();
                 } else {
-                    mTexture = GLHelper.loadTexture(gl, mBitmap);
+                    mTexture = GLHelper20.loadTexture(mBitmap);
                 }
             } else if (mType == TextureType.EMPTY_RECT) {
-                mTexture = GLHelper.createTargetTexture(gl, mRealSize[0], mRealSize[1]);
+                mTexture = GLHelper20.createTargetTexture(mRealSize[0], mRealSize[1]);
             }
 
             if (isValid()) {
                 didLoad(System.nanoTime() - t);
             }
         }
-
+        GLHelper20.checkGLError();
         return isValid();
     }
 
@@ -284,7 +285,7 @@ public class Texture extends GLResource {
         BeforeThreadCall();
 
         if (ReloadIfNeed(gl)) {
-            gl.glBindTexture(GL10.GL_TEXTURE_2D, mTexture);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTexture);
         }
 
         AfterThreadCall();
@@ -293,8 +294,12 @@ public class Texture extends GLResource {
     }
 
     public void unBind(GL10 gl) {
+    	BeforeThreadCall();
+
         if (isValid())
-            gl.glBindTexture(GL10.GL_TEXTURE_2D, 0);
+        	GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+        
+        AfterThreadCall();
     }
 
  

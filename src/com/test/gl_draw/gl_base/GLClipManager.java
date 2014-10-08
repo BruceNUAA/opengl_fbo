@@ -2,6 +2,7 @@
 package com.test.gl_draw.gl_base;
 
 import android.graphics.RectF;
+import android.opengl.GLES20;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -36,7 +37,7 @@ public class GLClipManager extends GLObject {
 
         mRenderIsFBO = render_is_frame_buffer;
 
-        gl.glDisable(GL10.GL_SCISSOR_TEST);
+        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
 
         mAttachScreenSize[0] = screenW;
         mAttachScreenSize[1] = screenH;
@@ -56,7 +57,7 @@ public class GLClipManager extends GLObject {
 
         mClipRect.set(rc);
 
-        gl.glEnable(GL10.GL_SCISSOR_TEST);
+        GLES20.glEnable(GLES20.GL_SCISSOR_TEST);
 
         float x, y;
         
@@ -69,7 +70,7 @@ public class GLClipManager extends GLObject {
                     - mClipRect.bottom - mOffsetXY[1];
         }
 
-        gl.glScissor(
+        GLES20.glScissor(
                 (int) x,
                 (int) y,
                 (int) mClipRect.width(), (int) mClipRect.height());
@@ -80,7 +81,7 @@ public class GLClipManager extends GLObject {
     public void DisableClip(GL10 gl) {
         BeforeThreadCall();
 
-        gl.glDisable(GL10.GL_SCISSOR_TEST);
+        GLES20.glDisable(GLES20.GL_SCISSOR_TEST);
         
         AfterThreadCall();
     }

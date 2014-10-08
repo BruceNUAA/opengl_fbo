@@ -7,11 +7,14 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLConfigure;
 import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.GLShadeManager;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 public class TextureDraw extends GLObject {
@@ -34,12 +37,16 @@ public class TextureDraw extends GLObject {
 
     private boolean mVisible = true;
     
-    private float mAlpha = 1;
+    private float mAlpha = -1;
 
     private RectF mTextureVisibleRectF = new RectF();
 
 
     private boolean mRecyleBitmapWhenDetach = true;
+    
+    public TextureDraw() {
+    	SetAlpha(1);
+    }
     
     public void SetColor(int... color) {
         if (color.length != 1 && color.length != 2 && color.length != 4)
@@ -214,35 +221,63 @@ public class TextureDraw extends GLObject {
 
         if (!has_texture && !has_color)
             return;
-
+ 
         BeforeThreadCall();
+        
+        GLShadeManager shade_mgr = GLShadeManager.getInstance();
+
+        shade_mgr.SetHasTexture(has_texture);
         
         if (has_texture) {
             mTexture.bind(gl);
-            gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
+            GLES20.glUniform1i(shade_mgr.getTextureUniformHandle(), 0);
+        	GLES20.glEnableVertexAttribArray(shade_mgr.getTexCoordHandle());
+        	
+        	GLES20.glVertexAttribPointer(shade_mgr.getTexCoordHandle(), 2,
+    				GLES20.GL_FLOAT, false, 0, mTXCoordBuffer);
+    
         } else {
-            gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+        	GLES20.glDisableVertexAttribArray(shade_mgr.getTexCoordHandle());
         }
 
         if (has_color) {
-            gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+        	GLES20.glEnableVertexAttribArray(shade_mgr.getColorHandle());
+        	GLES20.glVertexAttribPointer(shade_mgr.getColorHandle(), 4,
+    				GLES20.GL_FLOAT, false, 0, mColorBuffer);
         } else {
-            gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+        	GLES20.glDisableVertexAttribArray(shade_mgr.getColorHandle());
         }
 
-        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffer);
+        GLES20.glEnableVertexAttribArray(shade_mgr.getVertexHandle());
+		GLES20.glVertexAttribPointer(shade_mgr.getVertexHandle(), 2,
+				GLES20.GL_FLOAT, false, 0, mVBuffer);
+		
+		// This multiplies the view matrix by the model matrix, and stores the
+		// result in the MVP matrix
+		// (which currently contains model * view).
+		Matrix.multiplyMM(shade_mgr.getMVPMatrix(), 0,
+				shade_mgr.getViewMatrix(), 0, shade_mgr.getModelMatrix(), 0);
 
-        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
+		// Pass in the modelview matrix.
+		GLES20.glUniformMatrix4fv(shade_mgr.getMVMatrixHandle(), 1, false,
+				shade_mgr.getMVPMatrix(), 0);
+
+		// This multiplies the modelview matrix by the projection matrix, and
+		// stores the result in the MVP matrix
+		// (which now contains model * view * projection).
+		Matrix.multiplyMM(shade_mgr.getMVPMatrix(), 0,
+				shade_mgr.getProjectionMatrix(), 0, shade_mgr.getMVPMatrix(),
+				0);
+
+		// Pass in the combined matrix.
+		GLES20.glUniformMatrix4fv(shade_mgr.getMVPMatrixHandle(), 1, false,
+				shade_mgr.getMVPMatrix(), 0);
+		
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
         //
         if (has_texture) {
             mTexture.unBind(gl);
-        } else {
-            gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
-        }
-
-        if (!has_color) {
-            gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
         }
 
         AfterThreadCall();

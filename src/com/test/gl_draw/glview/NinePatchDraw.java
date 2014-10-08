@@ -172,7 +172,8 @@ public class NinePatchDraw extends GLObject {
     }
 
 	public void Draw(GL10 gl) {
-
+if(true)
+	return;
 		if (mTXCoordBuffer == null || mVBuffer == null || mIdexBuffer == null
 				|| mTexture == null || mAlpha == 0 || mVisible == false)
 			return;

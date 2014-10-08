@@ -50,13 +50,13 @@ public class GLViewTest {
 
 		float w = GLView.sRenderWidth;
 		float h = GLView.sRenderHeight;
-
 		GLView view = new GLDragViewTest();
 		view.setOnTouchLisener(touch);
 		view.SetBounds(new RectF(w * 0.1f, h * 0.1f, w * 0.9f, h * 0.9f));
 		view.SetBackgound(0xff00264c, 0xffa4b9cf);
 		root_view.AddView(view);
-
+		root_view.SetBackgound(Color.TRANSPARENT);
+		
 		Texture texture = null;
 		{
 
@@ -72,10 +72,10 @@ public class GLViewTest {
 			bF.inset(w * 0.2f, h * 0.2f);
 
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
-
+		
 			view6.SetBounds(bF);
 
-			view6.SetBackgound(0x5fffffff);
+			view6.SetBackgound(0x3fffffff);
 			view.AddView(view6);
 
 			GLZoomView view2 = new GLZoomView();
@@ -86,7 +86,7 @@ public class GLViewTest {
 			RectF rc2 = new RectF(0, 0, w, h);
 			view2.SetZoomRect(rc1, rc2);
 			view2.SetBounds(rc1);
-			// view2.SetBackgound(0xff00ffff);
+			view2.SetBackgound(0x32ffffff);
 
 			root_view.AddView(view2);
 		}

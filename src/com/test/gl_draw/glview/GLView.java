@@ -6,11 +6,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLClipManager;
 import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.GLShadeManager;
 import com.test.gl_draw.igl_draw.ITouchEvent;
 
 public class GLView extends GLObject implements ITouchEvent {
@@ -164,18 +166,19 @@ public class GLView extends GLObject implements ITouchEvent {
 
         BeforeThreadCall();
         
-        gl.glPushMatrix();
-        gl.glTranslatef(mBounds.left, mBounds.top, 0);
+        GLShadeManager shade_mgr = GLShadeManager.getInstance();
+        shade_mgr.PushMatrix();
+        Matrix.translateM(shade_mgr.getModelMatrix(), 0, mBounds.left, mBounds.top, 0);
 
         for (GLView v : mChildViews) {
-            gl.glPushMatrix();
+        	shade_mgr.PushMatrix();
 
             v.Draw(gl);
 
-            gl.glPopMatrix();
+            shade_mgr.PopMatrix();
         }
 
-        gl.glPopMatrix();
+        shade_mgr.PopMatrix();
         
         AfterThreadCall();
     }
@@ -331,6 +334,7 @@ public class GLView extends GLObject implements ITouchEvent {
     }
 
     public void AddView(GLView view) {
+    	
         if (view == null || this.equals(view))
             return;
 

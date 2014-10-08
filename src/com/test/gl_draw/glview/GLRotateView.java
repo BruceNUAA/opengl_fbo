@@ -1,11 +1,12 @@
 package com.test.gl_draw.glview;
 
 import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.opengles.GL11;
 
 import android.graphics.RectF;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.gl_base.GLClipManager;
+import com.test.gl_draw.gl_base.GLShadeManager;
 
 public class GLRotateView extends GLTextureView {
 
@@ -73,37 +74,46 @@ public class GLRotateView extends GLTextureView {
 	}
 
 	public void SetRotateEven(GL10 gl) {
+		BeforeThreadCall();
+		
 		if (mDrawInRotateModeC == 1) {
 			RestoreRotateEven(gl);
 		} else if (mDrawInRotateModeC != 0) {
 			throw new RuntimeException(
 					"SetRotateEven and RestoreRotateEven should be used Pairly!");
 		}
-
-		gl.glPushMatrix();
-		gl.glTranslatef(mRotateOrigin[0], mRotateOrigin[1], 0);
-		gl.glRotatef(mRotateDegree, 0, 0, 1);
-		gl.glTranslatef(mOrigin[0] - mRotateOrigin[0], mOrigin[1]
+	
+		float[] model_matrix = GLShadeManager.getInstance().getModelMatrix();
+		
+		GLShadeManager.getInstance().PushMatrix();
+		Matrix.translateM(model_matrix, 0, mRotateOrigin[0], mRotateOrigin[1], 0);
+		Matrix.rotateM(model_matrix, 0, mRotateDegree, 0, 0, 1);
+		Matrix.translateM(model_matrix, 0, mOrigin[0] - mRotateOrigin[0], mOrigin[1]
 				- mRotateOrigin[1], 0);
-
-		GL11 gl11 = (GL11)gl;
-		gl11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mGLMatrix, 0);
-
+		
+		mGLMatrix = model_matrix.clone();
+		
 		mDrawInRotateModeC++;
+		
+		AfterThreadCall();
 	}
 
 	public void RestoreRotateEven(GL10 gl) {
+		BeforeThreadCall();
+		
 		if (mDrawInRotateModeC == 1) {
-			gl.glPopMatrix();
+			GLShadeManager.getInstance().PopMatrix();
 			mDrawInRotateModeC--;
 		} else {
 			throw new RuntimeException(
 					"SetRotateEven and RestoreRotateEven should be used Pairly!");
 		}
+		
+		AfterThreadCall();
 	}
 
 	public void setDrawClipBound(GL10 gl) {
-		gl.glPushMatrix();
+		GLShadeManager.getInstance().PushMatrix();
 
 		if (Parent() == null)
 			return;
@@ -115,7 +125,7 @@ public class GLRotateView extends GLTextureView {
 
 	public void restoreDrawClipBound(GL10 gl) {
 		GLClipManager.getInstance().DisableClip(gl);
-		gl.glPopMatrix();
+		GLShadeManager.getInstance().PopMatrix();
 	}
 
 	// 绘制
@@ -155,7 +165,7 @@ public class GLRotateView extends GLTextureView {
 		};
 
 		for (int i = 0; i < points.length; i++) {
-			android.opengl.Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
+			Matrix.multiplyMV(points[i], 0, mGLMatrix, 0,
 					points[i], 0);
 		}
 

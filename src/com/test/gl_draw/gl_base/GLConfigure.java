@@ -23,7 +23,6 @@ public class GLConfigure {
     // GL环境相关的信息
     private boolean mGLInited = false;
     private boolean mIsSupportNPOT = false;
-    private boolean mIsSupportFBO = false;
     
     private static GLConfigure sGlConfigure = null;
     
@@ -40,7 +39,6 @@ public class GLConfigure {
                 + " ";
         
         mIsSupportNPOT = checkIfContextSupportsNPOT(extensions);
-        mIsSupportFBO = checkIfContextSupportsFrameBufferObject(extensions);
         
         extensions = null;
         
@@ -80,14 +78,6 @@ public class GLConfigure {
         return mEnableGLTimerLog;
     }
     
-    public boolean isSupportFBO() {
-        if (!mGLInited) {
-            throw new RuntimeException("GLConfigure should be Inited!");
-        }
-        
-        return mIsSupportFBO;
-    }
-    
     public boolean isSupportNPOT() {
         if (!mGLInited) {
             throw new RuntimeException("GLConfigure should be Inited!");
@@ -98,10 +88,6 @@ public class GLConfigure {
     
     private  boolean checkIfContextSupportsNPOT(String extensions) {
         return checkIfContextSupportsExtension(extensions, "GL_OES_texture_npot");
-    }
-
-    private  boolean checkIfContextSupportsFrameBufferObject(String extensions) {
-        return checkIfContextSupportsExtension(extensions, "GL_OES_framebuffer_object");
     }
 
     /**

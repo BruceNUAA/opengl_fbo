@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 
@@ -20,19 +22,23 @@ public class cube {
 	public cube(IShadeManager shade_mgr) {
 		mIShadeMgr = shade_mgr;
 
-		float x = -mWidth / 2.0f;
-		float y = -mHeight / 2.0f;
+		float x = 0;
+		float y = 0;
 
 		float[] cubePositionData = {
 				//
-				x, y, 0,//
-				x + mWidth, y + 0, 0,//
-				x + 0, y + mHeight, 0,//
-				x + mWidth, y + mHeight, 0, };
+				x, y, //
+				x + mWidth, y + 0, //
+				x + 0, y + mHeight, //
+				x + mWidth, y + mHeight,  };
 		// R, G, B, A
 		final float[] cubeColorData = {
 				//
-				1.0f, 0.0f, 0.0f, 1.0f,//
+			
+				1.0f, 1.0f, 1.0f, .0f,//
+				1.0f, 1.0f, 1.0f, 1.0f,//
+				1.0f, 1.0f, 1.0f, 1.0f,//
+				1.0f, 1.0f, 1.0f, 1.0f,//
 				1.0f, 1.0f, 0.0f, 1.0f,//
 				1.0f, 0.0f, 1.0f, 1.0f,//
 				1.0f, 0.0f, 0.0f, 1.0f,//
@@ -66,22 +72,22 @@ public class cube {
 	 * Draws a cube.
 	 */
 	public void drawCube() {
+		GLES20.glClearColor(10.0f, 0.0f,0.0f, 10.0f);
+		GLES20.glEnable(GL10.GL_BLEND);
+		GLES20.glBlendFunc(GL10.GL_ONE, GL10.GL_ONE_MINUS_SRC_ALPHA);
 		ToolsUtil.checkGLError();
 		// Pass in the position information
-		mCubePositions.position(0);
-		GLES20.glVertexAttribPointer(mIShadeMgr.getVertexHandle(), 3,
+		GLES20.glVertexAttribPointer(mIShadeMgr.getVertexHandle(), 2,
 				GLES20.GL_FLOAT, false, 0, mCubePositions);
 
 		GLES20.glEnableVertexAttribArray(mIShadeMgr.getVertexHandle());
 
 		// Pass in the color information
-		mCubeColors.position(0);
 		GLES20.glVertexAttribPointer(mIShadeMgr.getColorHandle(), 4,
 				GLES20.GL_FLOAT, false, 0, mCubeColors);
 		GLES20.glEnableVertexAttribArray(mIShadeMgr.getColorHandle());
 
 		// Pass in the texture coordinate information
-		mCubeTextureCoordinates.position(0);
 		GLES20.glVertexAttribPointer(mIShadeMgr.getTexCoordHandle(), 2,
 				GLES20.GL_FLOAT, false, 0, mCubeTextureCoordinates);
 
