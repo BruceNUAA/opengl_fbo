@@ -248,6 +248,7 @@ public class GLView extends GLObject implements ITouchEvent {
     }
 
     public void PtInRender(float[] xy) {
+
         GLView parent = Parent();
         while (parent != null) {
             RectF boundF = parent.Bounds();
@@ -497,22 +498,22 @@ public class GLView extends GLObject implements ITouchEvent {
             return false;
         
         boolean handled = false;
-        float re_x = x - mBounds.left;
-        float re_y = y - mBounds.top;
+        x -= mBounds.left;
+        y -= mBounds.top;
 
         if (mTouchTargetGlView == null) {
             for (int i = mChildViews.size() - 1; i >= 0; i--) {
                 GLView v = mChildViews.get(i);
-                if (!v.HitTest(re_x, re_y))
+                if (!v.HitTest(x, y))
                     continue;
 
-                if (v.onUp(re_x, re_y)) {
+                if (v.onUp(x, y)) {
                     handled = true;
                     break;
                 }
             }
         } else {
-            handled = mTouchTargetGlView.onUp(re_x, re_y);
+            handled = mTouchTargetGlView.onUp(x, y);
 
             OnTouchListener li = mTouchTargetGlView.getOnTouchLisener();
             if (!handled && mTouchTargetGlView.HitTest(x, y) && li != null) {

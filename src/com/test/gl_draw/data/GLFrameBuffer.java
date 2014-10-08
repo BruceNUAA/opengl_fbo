@@ -2,24 +2,23 @@
 package com.test.gl_draw.data;
 
 import javax.microedition.khronos.opengles.GL10;
-import javax.microedition.khronos.opengles.GL11;
 import javax.microedition.khronos.opengles.GL11ExtensionPack;
 
 import android.graphics.RectF;
+import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.gl_base.GLClipManager;
-import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.GLShadeManager;
 import com.test.gl_draw.glview.GLView;
 import com.test.gl_draw.glview.TextureDraw;
-import com.test.gl_draw.utils.GLHelper;
+import com.test.gl_draw.utils.GLHelper20;
 
 public class GLFrameBuffer extends GLResource {
 
     private TextureDraw mTextureDraw = new TextureDraw();
 
     private int mFramebuffer;
-
-    private float[] mPVMatrix = new float[32];
 
     private RectF mRectF = new RectF();
 
@@ -41,8 +40,6 @@ public class GLFrameBuffer extends GLResource {
     
     public void DrawToLayer(GL10 gl, float alpha) {
 
-    	if (true)
-    		return;
         mFrameCallStackCount++;
 
         if (mFrameCallStackCount != 1) {
@@ -62,11 +59,9 @@ public class GLFrameBuffer extends GLResource {
 
         mTextureDraw.SetAlpha(alpha);
 
-        GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
+        GLES20.glBindFramebuffer(GL11ExtensionPack.GL_FRAMEBUFFER_OES, mFramebuffer);
 
-        gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, mFramebuffer);
-
-        gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
+        GLES20.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
         AfterThreadCall();
     }
@@ -83,9 +78,7 @@ public class GLFrameBuffer extends GLResource {
 
         BeforeThreadCall();
 
-        GL11ExtensionPack gl11 = (GL11ExtensionPack) gl;
-
-        gl11.glBindFramebufferOES(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
+        GLES20.glBindFramebuffer(GL11ExtensionPack.GL_FRAMEBUFFER_OES, 0);
 
         RestoreScene(gl);
 
@@ -94,7 +87,7 @@ public class GLFrameBuffer extends GLResource {
     
     @Override
     public void unload() {
-        if (GLHelper.deleteFrameBuffers(GLRender.GL(), mFramebuffer)) {
+        if (GLHelper20.deleteFrameBuffers(mFramebuffer)) {
             didUnload();
             
             mFramebuffer = 0;
@@ -116,7 +109,7 @@ public class GLFrameBuffer extends GLResource {
         if (mRectF.width() == GLView.sRenderWidth &&
                 mRectF.height() == GLView.sRenderHeight &&
                 mTextureDraw.getTexture() != null
-                && GLHelper.isFrameBuffer(gl, mFramebuffer)) {
+                && GLHelper20.isFrameBuffer(mFramebuffer)) {
             return;
         }
         
@@ -142,18 +135,17 @@ public class GLFrameBuffer extends GLResource {
         mTextureDraw.SetRenderRect(new RectF(0, 0, GLView.sRenderWidth,
                 GLView.sRenderHeight));
 
-        mFramebuffer = GLHelper.createFrameBuffer(gl,
+        mFramebuffer = GLHelper20.createFrameBuffer(
                 texture.getRealSize(), texture.getValidTexture(gl));
         
         didLoad(System.nanoTime() - t);
 
     }
 
-    private void SetUpScene(GL10 gl) {
-        GL11 gl11 = (GL11) gl;
-
-        gl11.glGetFloatv(GL11.GL_PROJECTION_MATRIX, mPVMatrix, 0);
-        gl11.glGetFloatv(GL11.GL_MODELVIEW_MATRIX, mPVMatrix, 16);
+    private void SetUpScene(GL10 gl) {	
+    	GLShadeManager shade_mgr = GLShadeManager.getInstance();
+	
+    	shade_mgr.PushMatrix(true);
 
         int[] texture_size = mTextureDraw.getTexture().getRealSize();
 
@@ -163,32 +155,27 @@ public class GLFrameBuffer extends GLResource {
         GLClipManager.getInstance().setScreenSize(gl, true, offset_x, offset_y,
                 texture_size[0], texture_size[1]);
 
-        gl.glViewport(
+        GLES20.glViewport(
                 //
                 (int) offset_x, (int) offset_y, (int) GLView.sRenderWidth,
                 (int) GLView.sRenderHeight);
-        gl.glMatrixMode(GL10.GL_PROJECTION);
-        gl.glLoadIdentity();
-        gl.glOrthof(0, GLView.sRenderWidth, 0, GLView.sRenderHeight, 1, -1);
-        gl.glMatrixMode(GL10.GL_MODELVIEW);
+
+        Matrix.orthoM(shade_mgr.getProjectionMatrix(), 0, 
+        		0, GLView.sRenderWidth, 0, GLView.sRenderHeight, 1, -1);
     }
 
     private void RestoreScene(GL10 gl) {
-
-        gl.glViewport(0, 0, GLView.sRenderWidth, GLView.sRenderHeight);
+    	GLShadeManager shade_mgr = GLShadeManager.getInstance();
+    	
+        GLES20.glViewport(0, 0, GLView.sRenderWidth, GLView.sRenderHeight);
 
         GLClipManager.getInstance().setScreenSize(gl, false, 0, 0,
                 GLView.sRenderWidth, GLView.sRenderHeight);
 
-        gl.glMatrixMode(GL10.GL_PROJECTION);
-        gl.glLoadMatrixf(mPVMatrix, 0);
+        shade_mgr.PopMatrix(true);
 
-        gl.glMatrixMode(GL10.GL_MODELVIEW);
-
-        gl.glLoadIdentity();
-
+    	Matrix.setIdentityM(shade_mgr.getModelMatrix(), 0);
+    	
         mTextureDraw.Draw(gl);
-
-        gl.glLoadMatrixf(mPVMatrix, 16);
     }
 }

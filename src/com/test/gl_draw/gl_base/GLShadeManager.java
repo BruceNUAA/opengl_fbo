@@ -185,12 +185,32 @@ public class GLShadeManager extends GLObject {
 		return mMVPMatrix;
 	}
 
-	public void PushMatrix() {
-		mMatrixStack.push(mModelMatrix.clone());
+	public void PushMatrix(boolean all_matrix) {
+		if (all_matrix) {
+			mMatrixStack.push(mModelMatrix.clone());
+			mMatrixStack.push(mViewMatrix.clone());
+			mMatrixStack.push(mProjectionMatrix.clone());
+		} else {
+			mMatrixStack.push(mModelMatrix.clone());
+		}
 	}
 
+	public void PopMatrix(boolean all_matrix) {
+		if (all_matrix) {
+			mProjectionMatrix = mMatrixStack.pop();
+			mViewMatrix = mMatrixStack.pop();
+			mModelMatrix = mMatrixStack.pop();
+		} else {
+			mModelMatrix = mMatrixStack.pop().clone();
+		}		
+	}
+	
+	public void PushMatrix() {
+		PushMatrix(false);
+	}
+	
 	public void PopMatrix() {
-		mModelMatrix = mMatrixStack.pop().clone();
+		PopMatrix(false);
 	}
 	
 	public void SetHasTexture(boolean has_texture) {

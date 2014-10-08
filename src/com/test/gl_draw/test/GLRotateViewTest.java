@@ -14,13 +14,13 @@ public class GLRotateViewTest extends GLRotateView {
 	// 绘制
 		@Override//
 		public void Draw(GL10 gl) {
-			float alpha = 1;//1-  Math.abs(getRotateDegree()/180)*10f;
+			float alpha = 0.1f;//1-  Math.abs(getRotateDegree()/180)*10f;
 			
-			//GLFrameBuffer.getInstance().DrawToLayer(gl, alpha);
+			GLFrameBuffer.getInstance().DrawToLayer(gl, alpha);
 			
 			super.Draw(gl);
 
-		//	GLFrameBuffer.getInstance().Restore(gl);
+			GLFrameBuffer.getInstance().Restore(gl);
 		}
 		
 		@Override

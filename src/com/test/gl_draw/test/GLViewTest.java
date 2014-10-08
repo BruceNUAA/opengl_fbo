@@ -70,7 +70,7 @@ public class GLViewTest {
 			RectF bF = new RectF(0, 0, view.Bounds().width(), view.Bounds()
 					.height());
 			bF.inset(w * 0.2f, h * 0.2f);
-
+			bF.offset(0, -h * 0.2f);
 			view6.setRotateOrigin(bF.centerX(), GLView.sRenderHeight);
 		
 			view6.SetBounds(bF);
@@ -86,7 +86,7 @@ public class GLViewTest {
 			RectF rc2 = new RectF(0, 0, w, h);
 			view2.SetZoomRect(rc1, rc2);
 			view2.SetBounds(rc1);
-			view2.SetBackgound(0x32ffffff);
+			view2.SetBackgound(Color.TRANSPARENT);
 
 			root_view.AddView(view2);
 		}

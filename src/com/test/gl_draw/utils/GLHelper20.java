@@ -177,9 +177,9 @@ public class GLHelper20 {
 		return fb[0];
 	}
 
-	public static void deleteFrameBuffers(int fbo) {
+	public static boolean deleteFrameBuffers(int fbo) {
 		if (!isFrameBuffer(fbo))
-			return;
+			return false;
 
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fbo);
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER,
@@ -189,6 +189,7 @@ public class GLHelper20 {
 		GLES20.glDeleteFramebuffers(1, new int[] { fbo }, 0);
 
 		GLHelper20.checkGLError();
+		return true;
 	}
 
 	/**

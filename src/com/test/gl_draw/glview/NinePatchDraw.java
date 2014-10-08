@@ -6,10 +6,13 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.graphics.RectF;
+import android.opengl.GLES20;
+import android.opengl.Matrix;
 
 import com.test.gl_draw.data.Texture;
 import com.test.gl_draw.gl_base.GLObject;
 import com.test.gl_draw.gl_base.GLRender;
+import com.test.gl_draw.gl_base.GLShadeManager;
 import com.test.gl_draw.utils.helper.BufferUtil;
 
 //           stretch pos
@@ -44,17 +47,20 @@ public class NinePatchDraw extends GLObject {
 	private float[] mStretchPos;
 	private float[] mBorder;
 
-	private RectF mRect = new RectF();
+	private RectF mRenderRect = new RectF();
 
 	private float mCornerRScale = 1;
-	
-	private float mAlpha = 1;
-	
+
+	private float mAlpha = -1;
+
 	private boolean mVisible = true;
-	
-    private boolean mRecyleBitmapWhenDetach = true;
+
+	private boolean mRecyleBitmapWhenDetach = true;
 
 	public NinePatchDraw() {
+		
+		setAlpha(1);
+		
 		int[][] index = new int[][] {
 				//
 				{ 0, 1, 2 }, { 0, 2, 3 },// A
@@ -84,12 +90,12 @@ public class NinePatchDraw extends GLObject {
 	}
 
 	public void setAlpha(float alpha) {
-	    alpha = Math.max(0, Math.min(1, alpha));
-	    
-	    if (mAlpha == alpha && mColorBuffer != null)
-	        return;
-	    
-	    mAlpha = alpha;
+		alpha = Math.max(0, Math.min(1, alpha));
+
+		if (mAlpha == alpha && mColorBuffer != null)
+			return;
+
+		mAlpha = alpha;
 
 		float[][] colors = new float[][] {
 				// 0, 1, 2, 3
@@ -119,10 +125,11 @@ public class NinePatchDraw extends GLObject {
 
 	}
 
-	public void setTexture(Texture texture, float[] stretchPos, float[] border, boolean recyle_bitmap_when_detach) {
+	public void setTexture(Texture texture, float[] stretchPos, float[] border,
+			boolean recyle_bitmap_when_detach) {
 		if (texture == null || stretchPos.length < 4)
 			return;
-		
+
 		mRecyleBitmapWhenDetach = recyle_bitmap_when_detach;
 
 		if (border == null || border.length < 4) {
@@ -131,10 +138,10 @@ public class NinePatchDraw extends GLObject {
 
 		mStretchPos = stretchPos.clone();
 		mBorder = border.clone();
-		
-		if(mTexture != null)
-		    mTexture.Destory(true);
-		
+
+		if (mTexture != null)
+			mTexture.Destory(true);
+
 		mTexture = texture;
 
 		UpdateTexture();
@@ -151,59 +158,96 @@ public class NinePatchDraw extends GLObject {
 	public void setRect(RectF rect) {
 		if (rect == null || rect.isEmpty())
 			return;
-		mRect.set(rect);
+		mRenderRect.set(rect);
 
 		UpdateRect();
 	}
-	
-    public void setVisible(boolean visible) {
-        if (mVisible == visible)
-            return;
-        
-        mVisible = visible;
-        if (mTexture == null)
-            return;
-        
-        if (!mVisible) {
-            mTexture.Destory(false);
-        } else {
-            mTexture.ReloadIfNeed(GLRender.GL());
-        }
-    }
+
+	public void setVisible(boolean visible) {
+		if (mVisible == visible)
+			return;
+
+		mVisible = visible;
+		if (mTexture == null)
+			return;
+
+		if (!mVisible) {
+			mTexture.Destory(false);
+		} else {
+			mTexture.ReloadIfNeed(GLRender.GL());
+		}
+	}
 
 	public void Draw(GL10 gl) {
-if(true)
-	return;
 		if (mTXCoordBuffer == null || mVBuffer == null || mIdexBuffer == null
-				|| mTexture == null || mAlpha == 0 || mVisible == false)
+				|| mTexture == null || mAlpha == 0 || mVisible == false || mRenderRect.isEmpty())
 			return;
 
-		if (!mTexture.bind(gl))
-			return;
-
-		BeforeThreadCall();
+		boolean has_texture = mTexture != null && mTexture.ReloadIfNeed(gl);
 		
+		if (!has_texture)
+			return;
+
 		boolean has_color = mColorBuffer != null;
 
-		if (has_color) {
-			gl.glColorPointer(4, GL10.GL_FLOAT, 0, mColorBuffer);
+		BeforeThreadCall();
+
+		GLShadeManager shade_mgr = GLShadeManager.getInstance();
+
+		shade_mgr.SetHasTexture(has_texture);
+
+		if (has_texture) {
+			mTexture.bind(gl);
+			GLES20.glUniform1i(shade_mgr.getTextureUniformHandle(), 0);
+			GLES20.glEnableVertexAttribArray(shade_mgr.getTexCoordHandle());
+
+			GLES20.glVertexAttribPointer(shade_mgr.getTexCoordHandle(), 2,
+					GLES20.GL_FLOAT, false, 0, mTXCoordBuffer);
+
 		} else {
-			gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
+			GLES20.glDisableVertexAttribArray(shade_mgr.getTexCoordHandle());
 		}
 
-		gl.glVertexPointer(2, GL10.GL_FLOAT, 0, mVBuffer);
-		gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, mTXCoordBuffer);
+		if (has_color) {
+			GLES20.glEnableVertexAttribArray(shade_mgr.getColorHandle());
+			GLES20.glVertexAttribPointer(shade_mgr.getColorHandle(), 4,
+					GLES20.GL_FLOAT, false, 0, mColorBuffer);
+		} else {
+			GLES20.glDisableVertexAttribArray(shade_mgr.getColorHandle());
+		}
+
+		GLES20.glEnableVertexAttribArray(shade_mgr.getVertexHandle());
+		GLES20.glVertexAttribPointer(shade_mgr.getVertexHandle(), 2,
+				GLES20.GL_FLOAT, false, 0, mVBuffer);
+
+		// This multiplies the view matrix by the model matrix, and stores the
+		// result in the MVP matrix
+		// (which currently contains model * view).
+		Matrix.multiplyMM(shade_mgr.getMVPMatrix(), 0,
+				shade_mgr.getViewMatrix(), 0, shade_mgr.getModelMatrix(), 0);
+
+		// Pass in the modelview matrix.
+		GLES20.glUniformMatrix4fv(shade_mgr.getMVMatrixHandle(), 1, false,
+				shade_mgr.getMVPMatrix(), 0);
+
+		// This multiplies the modelview matrix by the projection matrix, and
+		// stores the result in the MVP matrix
+		// (which now contains model * view * projection).
+		Matrix.multiplyMM(shade_mgr.getMVPMatrix(), 0,
+				shade_mgr.getProjectionMatrix(), 0, shade_mgr.getMVPMatrix(), 0);
+
+		// Pass in the combined matrix.
+		GLES20.glUniformMatrix4fv(shade_mgr.getMVPMatrixHandle(), 1, false,
+				shade_mgr.getMVPMatrix(), 0);
 
 		gl.glDrawElements(GL10.GL_TRIANGLES, mIdexBuffer.capacity(),
 				GL10.GL_UNSIGNED_BYTE, mIdexBuffer);
+
 		//
-		if (!has_color) {
-			gl.glEnableClientState(GL10.GL_COLOR_ARRAY);
-		}
-
 		mTexture.unBind(gl);
-
+		
 		AfterThreadCall();
+
 	}
 
 	public void setCornerRate(float scale) {
@@ -213,36 +257,36 @@ if(true)
 		mCornerRScale = scale;
 		UpdateRect();
 	}
-	
-    public void UnloadTexture() {
-        if (mTexture != null) {
-            mTexture.Destory(false);
-        }
-    }
 
-    public void DetachFromView() {
-        if (mTexture != null) {
-            mTexture.Destory(mRecyleBitmapWhenDetach);
-            mTexture = null;
-        }
+	public void UnloadTexture() {
+		if (mTexture != null) {
+			mTexture.Destory(false);
+		}
+	}
 
-        if (mVBuffer != null) {
-            mVBuffer.clear();
-            mVBuffer = null;
-        }
+	public void DetachFromView() {
+		if (mTexture != null) {
+			mTexture.Destory(mRecyleBitmapWhenDetach);
+			mTexture = null;
+		}
 
-        if (mTXCoordBuffer != null) {
-            mTXCoordBuffer.clear();
-            mTXCoordBuffer = null;
-        }
+		if (mVBuffer != null) {
+			mVBuffer.clear();
+			mVBuffer = null;
+		}
 
-        if (mColorBuffer != null) {
-            mColorBuffer.clear();
-            mColorBuffer = null;
-        }
+		if (mTXCoordBuffer != null) {
+			mTXCoordBuffer.clear();
+			mTXCoordBuffer = null;
+		}
 
-        mRect.setEmpty();
-    }
+		if (mColorBuffer != null) {
+			mColorBuffer.clear();
+			mColorBuffer = null;
+		}
+
+		mRenderRect.setEmpty();
+	}
 
 	private void UpdateTexture() {
 		if (mTexture == null || mStretchPos == null)
@@ -290,8 +334,8 @@ if(true)
 	}
 
 	private void UpdateRect() {
-		if (mStretchPos == null || mBorder == null || mRect == null
-				|| mRect.isEmpty())
+		if (mStretchPos == null || mBorder == null || mRenderRect == null
+				|| mRenderRect.isEmpty())
 			return;
 
 		float[] pos = mStretchPos.clone();
@@ -308,29 +352,37 @@ if(true)
 
 		float[][] vBuffer = new float[][] {
 				// 0, 1, 2, 3
-				{ mRect.left - border[0], mRect.top - border[1] },
-				{ mRect.left + pos[0] - border[0], mRect.top - border[1] },
-				{ mRect.left + pos[0] - border[0],
-						mRect.top + pos[2] - border[1] },
-				{ mRect.left - border[0], mRect.top + pos[2] - border[1] },
+				{ mRenderRect.left - border[0], mRenderRect.top - border[1] },
+				{ mRenderRect.left + pos[0] - border[0],
+						mRenderRect.top - border[1] },
+				{ mRenderRect.left + pos[0] - border[0],
+						mRenderRect.top + pos[2] - border[1] },
+				{ mRenderRect.left - border[0],
+						mRenderRect.top + pos[2] - border[1] },
 				// 4, 5, 6, 7
-				{ mRect.right - pos[1] + border[2], mRect.top - border[1] },
-				{ mRect.right + border[2], mRect.top - border[1] },
-				{ mRect.right + border[2], mRect.top + pos[2] - border[1] },
-				{ mRect.right - pos[1] + border[2],
-						mRect.top + pos[2] - border[1] },
+				{ mRenderRect.right - pos[1] + border[2],
+						mRenderRect.top - border[1] },
+				{ mRenderRect.right + border[2], mRenderRect.top - border[1] },
+				{ mRenderRect.right + border[2],
+						mRenderRect.top + pos[2] - border[1] },
+				{ mRenderRect.right - pos[1] + border[2],
+						mRenderRect.top + pos[2] - border[1] },
 				// 8, 9, 10, 11
-				{ mRect.right + border[2], mRect.bottom - pos[3] + border[3] },
-				{ mRect.right + border[2], mRect.bottom + border[3] },
-				{ mRect.right - pos[1] + border[2], mRect.bottom + border[3] },
-				{ mRect.right - pos[1] + border[2],
-						mRect.bottom - pos[3] + border[3] },
+				{ mRenderRect.right + border[2],
+						mRenderRect.bottom - pos[3] + border[3] },
+				{ mRenderRect.right + border[2], mRenderRect.bottom + border[3] },
+				{ mRenderRect.right - pos[1] + border[2],
+						mRenderRect.bottom + border[3] },
+				{ mRenderRect.right - pos[1] + border[2],
+						mRenderRect.bottom - pos[3] + border[3] },
 				// 12, 13, 14, 15
-				{ mRect.left + pos[0] - border[0], mRect.bottom + border[3] },
-				{ mRect.left - border[0], mRect.bottom + border[3] },
-				{ mRect.left - border[0], mRect.bottom - pos[3] + border[3] },
-				{ mRect.left + pos[0] - border[0],
-						mRect.bottom - pos[3] + border[3] },//
+				{ mRenderRect.left + pos[0] - border[0],
+						mRenderRect.bottom + border[3] },
+				{ mRenderRect.left - border[0], mRenderRect.bottom + border[3] },
+				{ mRenderRect.left - border[0],
+						mRenderRect.bottom - pos[3] + border[3] },
+				{ mRenderRect.left + pos[0] - border[0],
+						mRenderRect.bottom - pos[3] + border[3] },//
 		};
 
 		mVBuffer = BufferUtil
